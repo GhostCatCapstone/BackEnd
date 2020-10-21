@@ -2,11 +2,14 @@ pipeline {
     agent any
     
     stages {
-        stage('build') {
+        stage ('Package') {
             steps {
-                sh 'echo Compile steps here'
+                sh 'mvn package'
+                archiveArtifacts artifacts: 'src/**/*.java'
+                archiveArtifacts artifacts: 'target/*.jar'
             }
         }
+
         
         stage('test') {
             steps {
