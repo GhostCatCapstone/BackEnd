@@ -19,7 +19,7 @@ pipeline {
         
         stage('deploy') {
             steps {
-                sh 'echo Deploy steps here'
+                sh 'aws lambda update-function-code --function-name ExampleFunction --zip-file fileb://target/example-java-1.0-SNAPSHOT.jar'
             }
         }
     }
