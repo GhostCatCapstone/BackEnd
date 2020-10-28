@@ -2,9 +2,9 @@ pipeline {
     agent any
     
     stages {
-        stage ('Package') {
+        stage ('build') {
             steps {
-                sh 'mvn package'
+                sh 'mvn clean compile package'
                 archiveArtifacts artifacts: 'src/**/*.java'
                 archiveArtifacts artifacts: 'target/*.jar'
             }
@@ -13,13 +13,13 @@ pipeline {
         
         stage('test') {
             steps {
-                sh 'echo Test steps here'
+                sh 'mvn test'
             }
         }
         
         stage('deploy') {
             steps {
-                sh 'aws lambda update-function-code --function-name ExampleFunction --zip-file fileb://target/example-java-1.0-SNAPSHOT.jar'
+                sh 'echo "The deploy stage will occur in the DeployLambdaJob"'
             }
         }
     }
