@@ -7,8 +7,6 @@ pipeline {
         stage ('build') {
             steps {
                 sh 'mvn clean compile package'
-                archiveArtifacts artifacts: 'src/**/*.java'
-                archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
@@ -21,9 +19,7 @@ pipeline {
         
         stage('deploy') {
             steps {
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'aws-key', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    AWS("--region=us-east-1 aws lambda update-function-code --function-name ExampleFunction --zip-file fileb://target/example-java-1.0-SNAPSHOT.jar")
-                }
+                sh 'echo "The deploy stage will occur in the DeployLambdaJob"'
             }
         }
     }
