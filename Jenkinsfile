@@ -5,8 +5,6 @@ pipeline {
         stage ('build') {
             steps {
                 sh 'mvn clean compile package'
-                archiveArtifacts artifacts: 'src/**/*.java'
-                archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
