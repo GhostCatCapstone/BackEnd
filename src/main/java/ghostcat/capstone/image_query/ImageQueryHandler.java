@@ -26,18 +26,6 @@ public class ImageQueryHandler {
     static String DATE_INDEX = "UserID-img_date-index";
     static String CAMERA_TRAP_INDEX = "UserID-camera_trap-index";
 
-    public static void main(String[] args) {
-        ImageQueryRequest request = new ImageQueryRequest();
-        request.userID = "researcherID";
-        request.deployment = "photos_spring2019";
-        request.authToken = "helloWorld";
-        request.cameraTrap = "site002";
-        request.minDate = Long.valueOf("1556228937000");
-        request.maxDate = Long.valueOf("1556228942000");
-        request.classes.put("Cow", .99);
-        handleRequest(request, null);
-    }
-
     /**
      * Method invoked by the lambda. Queries DynamoDB, and filters the results based on the request.
      *
@@ -46,22 +34,71 @@ public class ImageQueryHandler {
      */
     public static ImageQueryResponse handleRequest(ImageQueryRequest request, Context context) {
         ImageQueryResponse response = new ImageQueryResponse();
-
-//        LambdaLogger logger = context.getLogger();
-//        logger.log("Called ImageQueryHandler");
-
-        if (!validToken(request.authToken, request.userID)) {
-            response.errorMsg = "Invalid token";
-            response.success = false;
-        }
         HashMap<String, String> classNames = new HashMap<>();
-        int numClasses = getUserInfo(request, classNames);
+        int numClasses = 0;
+
+        if (context != null) {
+            LambdaLogger logger = context.getLogger();
+            logger.log("Called ImageQueryHandler");
+        }
+
+        response = errorCheckRequest(request);
+        if (!response.success) return response;
+
+        numClasses = getUserInfo(request, classNames, response);
+        if (!response.success) return response;
+
         ArrayList<Image> imgResults = queryBBoxDB(request, numClasses);
         ArrayList<Image> filteredResults = filterResultsOnMetadata(imgResults, request);
         filteredResults = filterResultsOnClass(filteredResults, request, classNames);
 
         response.images = filteredResults;
         response.success = true;
+
+        return response;
+    }
+
+    /**
+     * Ensures that a request is valid.
+     * @param request Object that contains query parameters.
+     * @return Response object that will contain error message if request is invalid.
+     */
+    public static ImageQueryResponse errorCheckRequest(ImageQueryRequest request) {
+        ImageQueryResponse response = new ImageQueryResponse();
+        response.success = true;
+
+        if (request.userID == null) {
+            response.success = false;
+            response.errorMsg = "Null userID";
+        }
+        if (request.deployment == null) {
+            response.success = false;
+            response.errorMsg = "Null deploymentID";
+        }
+        if (request.authToken == null) {
+            response.success = false;
+            response.errorMsg = "Null authToken";
+        }
+        if (!validToken(request.authToken, request.userID)) {
+            response.errorMsg = "Invalid authToken: " + request.authToken;
+            response.success = false;
+        }
+        if (request.minDate != null && request.maxDate != null) {
+            if (request.maxDate <= request.minDate) {
+                response.success = false;
+                response.errorMsg = "Invalid date range: minDate = " + request.minDate +
+                        " and maxDate = " + request.maxDate + "." ;
+            }
+        }
+        if (request.classes != null) {
+            for (String s : request.classes.keySet()) {
+                double confidenceValue = request.classes.get(s);
+                if (confidenceValue > 1 || confidenceValue < 0) {
+                    response.success = false;
+                    response.errorMsg = "Invalid confidence value: " + s + " = " + confidenceValue ;
+                }
+            }
+        }
 
         return response;
     }
@@ -115,7 +152,7 @@ public class ImageQueryHandler {
     public static ArrayList<Image> filterResultsOnClass(ArrayList<Image> imgResults, ImageQueryRequest request,
                                                         HashMap<String, String> classNames) {
         ArrayList<Image> filteredImages = new ArrayList<>();
-        if (request.classes == null) return imgResults;
+        if (request.classes == null || request.classes.size() == 0) return imgResults;
         for (Image i : imgResults) {
             boolean addImg = true;
             for (BoundingBox b : i.boundingBoxes) {
@@ -141,12 +178,14 @@ public class ImageQueryHandler {
      * @param classNames HashMap<String, String> object that holds the association between a user's set of labels and
      *      *                   each label's location in the BoundingBox database (e.g. "Cow" -> "class_1"). This is used to
      *      *                   look up what each label's value is for a bounding box.
+     * @param response Response object that will contain error message if an error occurs.
      * @return The number of classes associated with a user's data set.
      */
-    public static int getUserInfo(ImageQueryRequest request, HashMap<String, String> classNames) {
+    public static int getUserInfo(ImageQueryRequest request, HashMap<String, String> classNames, ImageQueryResponse response) {
 
         Table userDataTable = dynamoDB.getTable("UserData");
 
+        //Query UserData table
         QuerySpec spec = new QuerySpec()
                 .withKeyConditionExpression("UserID = :v_userID and DeploymentID = :v_deploymentID")
                 .withValueMap(new ValueMap()
@@ -156,6 +195,26 @@ public class ImageQueryHandler {
 
         ItemCollection<QueryOutcome> items = userDataTable.query(spec);
         Iterator<Item> iterator = items.iterator();
+
+        //Error handling-  query returns no items, check if userID is invalid or if deployment is invalid.
+        if (!iterator.hasNext()) {
+            response.success = false;
+
+            //Query only on userID. If any items are returned, then the userID is valid and the deployment is invalid.
+            spec = new QuerySpec().withKeyConditionExpression("UserID = :v_userID")
+                    .withValueMap(new ValueMap().withString(":v_userID", request.userID));
+            items = userDataTable.query(spec);
+            iterator = items.iterator();
+            if (!iterator.hasNext()) {
+                response.errorMsg = "Invalid userID: " + request.userID;
+            }
+            else {
+                response.errorMsg = "Invalid deploymentID: " + request.deployment;
+            }
+            return 0;
+        }
+
+        //Format classes as HashMap
         Item item = null;
         int numClasses = 0;
         while (iterator.hasNext()) {
@@ -165,6 +224,16 @@ public class ImageQueryHandler {
                 classNames.put(item.getString("class_" + i), "class_" + i);
             }
         }
+
+        //Error handling- if a request contains a class name that isn't in classNames, then the request is invalid.
+        for (String requestClassName : request.classes.keySet()) {
+            if (!classNames.containsKey(requestClassName)) {
+                response.success = false;
+                response.errorMsg = "Invalid class name: " + requestClassName;
+                return 0;
+            }
+        }
+
         return numClasses;
     }
 
@@ -317,10 +386,8 @@ deployment
 Then filter based on all parameters.
 
 TO DO:
--Move this back to the main project
--Make it not break
+-Add jenkins thing
 -Call from lambda
 -Call from API
 -Call from website
--Write unit tests
  */
