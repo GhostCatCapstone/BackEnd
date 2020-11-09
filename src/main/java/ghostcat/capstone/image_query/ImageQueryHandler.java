@@ -9,6 +9,8 @@ import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import ghostcat.capstone.holders.BoundingBox;
 import ghostcat.capstone.holders.Image;
 
@@ -16,7 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class ImageQueryHandler {
+public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, ImageQueryResponse> {
 
     static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
             .withRegion(Regions.US_EAST_1)
@@ -32,7 +34,7 @@ public class ImageQueryHandler {
      * @param request Object that contains query parameters.
      * @return Object that contains query results, or an error message if something went wrong.
      */
-    public static ImageQueryResponse handleRequest(ImageQueryRequest request, Context context) {
+    public ImageQueryResponse handleRequest(ImageQueryRequest request, Context context) {
         ImageQueryResponse response = new ImageQueryResponse();
         HashMap<String, String> classNames = new HashMap<>();
         int numClasses = 0;
@@ -41,6 +43,7 @@ public class ImageQueryHandler {
             LambdaLogger logger = context.getLogger();
             logger.log("Called ImageQueryHandler");
         }
+
 
         response = errorCheckRequest(request);
         if (!response.success) return response;
