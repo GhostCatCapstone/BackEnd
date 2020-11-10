@@ -2,6 +2,7 @@ package ghostcat.loginLambda;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.UUID;
 
 public class Login {
   public LoginResult handleRequest(LoginRequest request) {
@@ -9,18 +10,11 @@ public class Login {
     LoginDAO dao = new LoginDAO();
 
     if (dao.valid(request.getUserID(), request.getPasswordHash())) {
-      String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-      SecureRandom rnd = new SecureRandom();
-      StringBuilder stringBuilder = new StringBuilder();
-      for (int i = 0; i < 10; ++i) {
-        stringBuilder.append( AB.charAt( rnd.nextInt(AB.length()) ) );
-      }
+      UUID uuid = UUID.randomUUID();
       StringBuilder time = new StringBuilder();
       time.append(Instant.now().toEpochMilli());
-      stringBuilder.append(time.toString());
-      String auth = stringBuilder.toString();
-      dao.addAuth(request.userID, auth, time.toString());
-      result.setAuth_token(auth);
+      dao.addAuth(request.userID, uuid.toString(), time.toString());
+      result.setAuth_token(uuid.toString());
     }
     else {
       result.setError_message(dao.getError_message());
