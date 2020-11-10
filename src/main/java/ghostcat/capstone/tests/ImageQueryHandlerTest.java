@@ -1,6 +1,7 @@
 package ghostcat.capstone.tests;
 
 import ghostcat.capstone.holders.BoundingBox;
+import ghostcat.capstone.holders.ClassValue;
 import ghostcat.capstone.holders.Image;
 import ghostcat.capstone.image_query.ImageQueryHandler;
 import ghostcat.capstone.image_query.ImageQueryRequest;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,7 +30,7 @@ class ImageQueryHandlerTest {
         request.cameraTrap = "site002";
         request.minDate = Long.valueOf("1556228937000");
         request.maxDate = Long.valueOf("1556228942000");
-        request.classes.put("Cow", .99);
+        request.classes.add(new ClassValue("Cow", .99));
     }
 
     @AfterEach
@@ -102,7 +104,7 @@ class ImageQueryHandlerTest {
     public void shouldReturnErrorOnInvalidLabel() {
         ImageQueryResponse response = null;
 
-        request.classes.put("Octopus", .9);
+        request.classes.add(new ClassValue("Octopus", .9));
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
     }
@@ -112,12 +114,12 @@ class ImageQueryHandlerTest {
     public void shouldReturnErrorOnInvalidConfidenceValue() {
         ImageQueryResponse response = null;
 
-        request.classes.put("Cow", 1.1);
+        request.classes.add(new ClassValue("Cow", 1.1));
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
 
-        request.classes = new HashMap<>();
-        request.classes.put("Cow", -.1);
+        request.classes = new ArrayList<>();
+        request.classes.add(new ClassValue("Cow", -.1));
         assertFalse(response.success);
     }
 
@@ -129,7 +131,7 @@ class ImageQueryHandlerTest {
         request.cameraTrap = "site004";
         request.minDate = null;
         request.maxDate = null;
-        request.classes = new HashMap<>();
+        request.classes = new ArrayList<>();
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         boolean correctTrapName = true;
@@ -146,7 +148,7 @@ class ImageQueryHandlerTest {
         request.cameraTrap = null;
         request.minDate = Long.valueOf("1553285042000");
         request.maxDate = Long.valueOf("1553586356000");
-        request.classes = new HashMap<>();
+        request.classes = new ArrayList<>();
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
@@ -162,13 +164,13 @@ class ImageQueryHandlerTest {
         request.cameraTrap = null;
         request.minDate = null;
         request.maxDate = null;
-        request.classes = new HashMap<>();
-        request.classes.put("Cow", .9);
+        request.classes = new ArrayList<>();
+        request.classes.add(new ClassValue("Cow", .9));
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
             for (BoundingBox b : i.boundingBoxes) {
-                assertTrue(b.classes.get("class_1") >= .9);
+                assertTrue(b.classes.get("Cow") >= .9);
             }
         }
     }
@@ -181,7 +183,7 @@ class ImageQueryHandlerTest {
         request.cameraTrap = null;
         request.minDate = null;
         request.maxDate = null;
-        request.classes = new HashMap<>();
+        request.classes = new ArrayList<>();
         request.deployment = "photos_spring2019";
         response = handler.handleRequest(request, null);
         assertTrue(response.success);

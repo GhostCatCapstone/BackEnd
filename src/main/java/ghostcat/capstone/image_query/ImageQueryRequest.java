@@ -1,5 +1,8 @@
 package ghostcat.capstone.image_query;
 
+import ghostcat.capstone.holders.ClassValue;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -10,5 +13,5 @@ public class ImageQueryRequest {
     public Long maxDate;
     public String deployment;
     public String cameraTrap;
-    public HashMap<String, Double> classes = new HashMap<>();
+    public ArrayList<ClassValue> classes = new ArrayList<>();
 }

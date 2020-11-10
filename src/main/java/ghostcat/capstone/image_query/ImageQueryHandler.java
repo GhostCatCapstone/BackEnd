@@ -11,6 +11,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import ghostcat.capstone.holders.BoundingBox;
+import ghostcat.capstone.holders.ClassValue;
 import ghostcat.capstone.holders.Image;
 
 import java.util.ArrayList;
@@ -43,14 +44,13 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
             logger.log("Called ImageQueryHandler");
         }
 
-
         response = errorCheckRequest(request);
         if (!response.success) return response;
 
         numClasses = getUserInfo(request, classNames, response);
         if (!response.success) return response;
 
-        ArrayList<Image> imgResults = queryBBoxDB(request, numClasses);
+        ArrayList<Image> imgResults = queryBBoxDB(request, classNames, numClasses);
         ArrayList<Image> filteredResults = filterResultsOnMetadata(imgResults, request);
         filteredResults = filterResultsOnClass(filteredResults, request, classNames);
 
@@ -93,11 +93,11 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
             }
         }
         if (request.classes != null) {
-            for (String s : request.classes.keySet()) {
-                double confidenceValue = request.classes.get(s);
+            for (ClassValue c : request.classes) {
+                double confidenceValue = c.classValue;
                 if (confidenceValue > 1 || confidenceValue < 0) {
                     response.success = false;
-                    response.errorMsg = "Invalid confidence value: " + s + " = " + confidenceValue ;
+                    response.errorMsg = "Invalid confidence value: " + c.className + " = " + confidenceValue ;
                 }
             }
         }
@@ -158,12 +158,10 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         for (Image i : imgResults) {
             boolean addImg = true;
             for (BoundingBox b : i.boundingBoxes) {
-                for (String c : request.classes.keySet()) {
-                    //Step through this section with a breakpoint to get a clearer understanding of what is happening.
-                    String class_index = classNames.get(c);
-                    Double class_val = b.classes.get(class_index);
-                    Double class_threshold = request.classes.get(c);
-                    if (class_val < class_threshold) addImg = false;
+                for (ClassValue c : request.classes) {
+                    Double classVal = b.classes.get(c.className);
+                    Double classThreshold = c.classValue;
+                    if (classVal < classThreshold) addImg = false;
                 }
             }
             if (addImg) filteredImages.add(i);
@@ -228,10 +226,10 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         }
 
         //Error handling- if a request contains a class name that isn't in classNames, then the request is invalid.
-        for (String requestClassName : request.classes.keySet()) {
-            if (!classNames.containsKey(requestClassName)) {
+        for (ClassValue c : request.classes) {
+            if (!classNames.containsKey(c.className)) {
                 response.success = false;
-                response.errorMsg = "Invalid class name: " + requestClassName;
+                response.errorMsg = "Invalid class name: " + c.className;
                 return 0;
             }
         }
@@ -246,13 +244,14 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param numClasses The number of classes in a user's data set.
      * @return An ArrayList of image objects that contains the results of the query.
      */
-    public static ArrayList<Image> queryBBoxDB(ImageQueryRequest request, int numClasses) {
+    public static ArrayList<Image> queryBBoxDB(ImageQueryRequest request, HashMap<String, String> classNames,
+                                               int numClasses) {
         Table bboxTable = dynamoDB.getTable(BBOX_TABLE);
         Index dateIndex = bboxTable.getIndex(DATE_INDEX);
         Index cameraTrapIndex = bboxTable.getIndex(CAMERA_TRAP_INDEX);
 
         ItemCollection<QueryOutcome> items = getBBoxItems(request, bboxTable, dateIndex, cameraTrapIndex);
-        ArrayList<Image> results = formatQueryResults(numClasses, items);
+        ArrayList<Image> results = formatQueryResults(numClasses, classNames, items);
 
         return results;
     }
@@ -263,7 +262,8 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param items The results of the database query.
      * @return An ArrayList of image objects that contains the results of the query.
      */
-    private static ArrayList<Image> formatQueryResults(int numClasses, ItemCollection<QueryOutcome> items) {
+    private static ArrayList<Image> formatQueryResults(int numClasses, HashMap<String, String> classNames,
+                                                       ItemCollection<QueryOutcome> items) {
         ArrayList<Image> formattedResults = new ArrayList<>();
         Iterator<Item> iter = items.iterator();
         while (iter.hasNext()) {
@@ -294,11 +294,20 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
                     i.getDouble("bbox_height"));
 
             for (int j = 1; j <= numClasses; ++j) {
-                boundingBox.classes.put("class_" + j, i.getDouble("class_" + j));
+                boundingBox.classes.put(getNameFromIndex("class_" + j, classNames), i.getDouble("class_" + j));
             }
             addBBox(boundingBox, formattedResults);
         }
         return formattedResults;
+    }
+
+    public static String getNameFromIndex(String index, HashMap<String, String> classNames) {
+        for (String s : classNames.keySet()) {
+            if (index.equals(classNames.get(s))) {
+                return s;
+            }
+        }
+        return null;
     }
 
     /**
