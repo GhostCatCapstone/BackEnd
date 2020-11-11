@@ -1,3 +1,5 @@
+@Library('github.com/releaseworks/jenkinslib') _
+
 pipeline {
     agent any
     
@@ -5,8 +7,6 @@ pipeline {
         stage ('build') {
             steps {
                 sh 'mvn clean compile package'
-                archiveArtifacts artifacts: 'src/**/*.java'
-                archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
