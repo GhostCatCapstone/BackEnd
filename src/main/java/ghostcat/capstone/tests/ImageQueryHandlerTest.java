@@ -26,6 +26,7 @@ class ImageQueryHandlerTest {
         request = new ImageQueryRequest();
         request.userID = "researcherID";
         request.deployment = "photos_spring2019";
+        request.projectID = "projectID";
         request.authToken = "helloWorld";
         request.cameraTrap = "site002";
         request.minDate = Long.valueOf("1556228937000");
@@ -69,15 +70,15 @@ class ImageQueryHandlerTest {
     }
 
     @Test
-    @DisplayName("Should return error on null/invalid deployment")
+    @DisplayName("Should return error on null/invalid projectID")
     public void shouldReturnErrorOnNullInvalidDeployment() {
         ImageQueryResponse response = null;
 
-        request.deployment = null;
+        request.projectID = null;
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
 
-        request.deployment = "InvalidDeploymentID";
+        request.projectID = "InvalidProjectID";
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
     }

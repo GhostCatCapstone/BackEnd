@@ -73,9 +73,9 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
             response.success = false;
             response.errorMsg = "Null userID";
         }
-        if (request.deployment == null) {
+        if (request.projectID == null) {
             response.success = false;
-            response.errorMsg = "Null deploymentID";
+            response.errorMsg = "Null projectID";
         }
         if (request.authToken == null) {
             response.success = false;
@@ -183,14 +183,14 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      */
     public static int getUserInfo(ImageQueryRequest request, HashMap<String, String> classNames, ImageQueryResponse response) {
 
-        Table userDataTable = dynamoDB.getTable("UserData");
+        Table userDataTable = dynamoDB.getTable("ProjectData");
 
         //Query UserData table
         QuerySpec spec = new QuerySpec()
-                .withKeyConditionExpression("UserID = :v_userID and DeploymentID = :v_deploymentID")
+                .withKeyConditionExpression("UserID = :v_userID and ProjectID = :v_projectID")
                 .withValueMap(new ValueMap()
                         .withString(":v_userID", request.userID)
-                        .withString(":v_deploymentID", request.deployment)
+                        .withString(":v_projectID", request.projectID)
                 );
 
         ItemCollection<QueryOutcome> items = userDataTable.query(spec);
@@ -209,7 +209,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
                 response.errorMsg = "Invalid userID: " + request.userID;
             }
             else {
-                response.errorMsg = "Invalid deploymentID: " + request.deployment;
+                response.errorMsg = "Invalid projectID: " + request.projectID;
             }
             return 0;
         }
