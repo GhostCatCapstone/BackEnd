@@ -1,4 +1,4 @@
-package ghostcat.loginLambda;
+package ghostcat.capstone.loginLambda;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;

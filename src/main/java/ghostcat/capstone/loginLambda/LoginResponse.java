@@ -1,6 +1,6 @@
-package ghostcat.loginLambda;
+package ghostcat.capstone.loginLambda;
 
-public class LoginResult {
+public class LoginResponse {
   public String auth_token;
   public String error_message;
 
@@ -12,7 +12,7 @@ public class LoginResult {
     return error_message;
   }
 
-  public LoginResult() {
+  public LoginResponse() {
     auth_token = null;
     error_message = null;
   }

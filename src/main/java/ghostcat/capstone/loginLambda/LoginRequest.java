@@ -1,4 +1,4 @@
-package ghostcat.loginLambda;
+package ghostcat.capstone.loginLambda;
 
 public class LoginRequest {
   public String userID;
