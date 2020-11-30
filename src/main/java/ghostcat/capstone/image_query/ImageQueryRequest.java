@@ -9,6 +9,7 @@ import java.util.HashSet;
 public class ImageQueryRequest {
     public String userID;
     public String authToken;
+    public String projectID;
     public Long minDate;
     public Long maxDate;
     public String deployment;
