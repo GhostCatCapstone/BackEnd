@@ -11,12 +11,8 @@ import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
-import ghostcat.capstone.holders.BoundingBox;
-import ghostcat.capstone.holders.ClassValue;
-import ghostcat.capstone.holders.Image;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 public class ImageQueryDAO {
