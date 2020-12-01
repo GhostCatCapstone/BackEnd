@@ -1,7 +1,7 @@
 package ghostcat.capstone.image_query;
 
 import ghostcat.capstone.holders.BoundingBox;
-import ghostcat.capstone.holders.ClassValue;
+import ghostcat.capstone.holders.ClassNameValue;
 import ghostcat.capstone.holders.Factory;
 import ghostcat.capstone.holders.Image;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +29,7 @@ class ImageQueryHandlerTest {
         request.cameraTrap = "site002";
         request.minDate = Long.valueOf("1556228937000");
         request.maxDate = Long.valueOf("1556228942000");
-        request.classes.add(new ClassValue("Cow", .99));
+        request.classes.add(new ClassNameValue("Cow", .99));
         Factory.imageQueryDAO = mock(ImageQueryDAO.class);
     }
 
@@ -106,7 +106,7 @@ class ImageQueryHandlerTest {
     public void shouldReturnErrorOnInvalidLabel() {
         ImageQueryResponse response = null;
 
-        request.classes.add(new ClassValue("Octopus", .9));
+        request.classes.add(new ClassNameValue("Octopus", .9));
         response = handler.handleRequest(request, null);
         //assertFalse(response.success);
         // TODO: fix the error handling so that we can test this with a mock
@@ -117,12 +117,12 @@ class ImageQueryHandlerTest {
     public void shouldReturnErrorOnInvalidConfidenceValue() {
         ImageQueryResponse response = null;
 
-        request.classes.add(new ClassValue("Cow", 1.1));
+        request.classes.add(new ClassNameValue("Cow", 1.1));
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
 
         request.classes = new ArrayList<>();
-        request.classes.add(new ClassValue("Cow", -.1));
+        request.classes.add(new ClassNameValue("Cow", -.1));
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
     }
@@ -169,7 +169,7 @@ class ImageQueryHandlerTest {
         request.minDate = null;
         request.maxDate = null;
         request.classes = new ArrayList<>();
-        request.classes.add(new ClassValue("Cow", .9));
+        request.classes.add(new ClassNameValue("Cow", .9));
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {

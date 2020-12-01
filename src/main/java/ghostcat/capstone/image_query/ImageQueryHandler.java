@@ -1,23 +1,15 @@
 package ghostcat.capstone.image_query;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import ghostcat.capstone.holders.BoundingBox;
-import ghostcat.capstone.holders.ClassValue;
+import ghostcat.capstone.holders.ClassNameValue;
 import ghostcat.capstone.holders.Factory;
 import ghostcat.capstone.holders.Image;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, ImageQueryResponse> {
 
@@ -87,7 +79,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
             }
         }
         if (request.classes != null) {
-            for (ClassValue c : request.classes) {
+            for (ClassNameValue c : request.classes) {
                 double confidenceValue = c.classValue;
                 if (confidenceValue > 1 || confidenceValue < 0) {
                     response.success = false;
@@ -152,7 +144,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         for (Image i : imgResults) {
             boolean addImg = true;
             for (BoundingBox b : i.boundingBoxes) {
-                for (ClassValue c : request.classes) {
+                for (ClassNameValue c : request.classes) {
                     Double classVal = b.classes.get(c.className);
                     Double classThreshold = c.classValue;
                     if (classVal < classThreshold) addImg = false;
@@ -163,3 +155,10 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         return filteredImages;
     }
 }
+
+/*
+TO DO:
+Write DAOs and unit tests for authentication and update bbox
+Fix problems with update bbox
+
+ */
