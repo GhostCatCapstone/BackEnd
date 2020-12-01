@@ -1,5 +1,6 @@
 package ghostcat.capstone.image_query;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
 import ghostcat.capstone.holders.BoundingBox;
 import ghostcat.capstone.holders.ClassValue;
 import ghostcat.capstone.holders.Factory;
@@ -10,9 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ImageQueryHandlerTest {
     ImageQueryHandler handler;
@@ -31,6 +34,16 @@ class ImageQueryHandlerTest {
         request.maxDate = Long.valueOf("1556228942000");
         request.classes.add(new ClassValue("Cow", .99));
         Factory.imageQueryDAO = mock(ImageQueryDAO.class);
+        when(Factory.imageQueryDAO.queryProjectDataOnUserIDAndProjectID(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(
+                        new Item().withString("UserID", "researcherID")
+                                .withString("class_1", "Cow")
+                                .withString("class_2", "Mule Deer")
+                                .withString("class_3", "Sheep")
+                                .withString("class_4", "Other")
+                                .withInt("num_classes", 4)
+                )
+        ));
     }
 
     @AfterEach
@@ -39,9 +52,34 @@ class ImageQueryHandlerTest {
         request = null;
     }
 
+    private Item generateValidResult() {
+        return new Item().withPrimaryKey("UserID", "researcherID")
+                .withString("BBoxID", "boxID")
+                .withDouble("bbox_X", .05)
+                .withDouble("bbox_Y", .05)
+                .withDouble("bbox_width", .1)
+                .withDouble("bbox_height", .1)
+                .withDouble("class_1", .9)
+                .withDouble("class_2", .9)
+                .withDouble("class_3",.9)
+                .withDouble("class_4", .9)
+                .withInt("img_height", 1)
+                .withInt("img_width", 1)
+                .withBoolean("flash_on", true)
+                .withBoolean("night_img", true)
+                .withString("camera_make", "make")
+                .withString("camera_model", "model")
+                .withLong("img_date", 9)
+                .withString("img_id", "id")
+                .withString("camera_trap", "trapName")
+                .withString("img_link", "img")
+                .withString("deployment", "deployment");
+    }
+
     @Test
     @DisplayName("Should return error on null/invalid userID")
     public void shouldReturnErrorOnNullInvalidUserID() {
+
         ImageQueryResponse response = null;
 
         request.userID = null;
@@ -49,24 +87,9 @@ class ImageQueryHandlerTest {
         assertFalse(response.success);
 
         request.userID = "InvalidUserID";
-        response = handler.handleRequest(request, null);
-        //assertFalse(response.success);
-        // TODO: fix the error handling so that we can test this with a mock
-    }
-
-    @Test
-    @DisplayName("Should return error on null/invalid authToken")
-    public void shouldReturnErrorOnNullInvalidAuthToken() {
-        ImageQueryResponse response = null;
-
-        request.authToken = null;
+        when(Factory.imageQueryDAO.queryProjectDataOnUserIDAndProjectID(request)).thenReturn(new ArrayList<>());
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
-
-        //TODO: uncomment when authToken validation is ready
-//        request.authToken = "InvalidAuthtoken";
-//        response = handler.handleRequest(request, null);
-//        assertFalse(response.success);
     }
 
     @Test
@@ -79,9 +102,16 @@ class ImageQueryHandlerTest {
         assertFalse(response.success);
 
         request.projectID = "InvalidProjectID";
+
+        when(Factory.imageQueryDAO.queryProjectDataOnUserIDAndProjectID(request)).thenReturn(new ArrayList<>());
+        when(Factory.imageQueryDAO.queryProjectDataOnUserID(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(
+                        new Item().withString("UserID", "researcherID")
+                )
+        ));
+
         response = handler.handleRequest(request, null);
-        //assertFalse(response.success);
-        // TODO: fix the error handling so that we can test this with a mock
+        assertFalse(response.success);
     }
 
     @Test
@@ -98,7 +128,7 @@ class ImageQueryHandlerTest {
     @Test
     @DisplayName("Should return error on invalid camera trap")
     public void shouldReturnErrorOnInvalidCameraTrap() {
-
+        //FIXME
     }
 
     @Test
@@ -107,9 +137,9 @@ class ImageQueryHandlerTest {
         ImageQueryResponse response = null;
 
         request.classes.add(new ClassValue("Octopus", .9));
+
         response = handler.handleRequest(request, null);
-        //assertFalse(response.success);
-        // TODO: fix the error handling so that we can test this with a mock
+        assertFalse(response.success);
     }
 
     @Test
@@ -136,9 +166,17 @@ class ImageQueryHandlerTest {
         request.minDate = null;
         request.maxDate = null;
         request.classes = new ArrayList<>();
+
+        Item validResult = generateValidResult().withString("camera_trap", "site004");
+        Item invalidResult = generateValidResult().withString("camera_trap", "site005");
+
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(validResult, invalidResult)
+        ));
+
+
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
-        boolean correctTrapName = true;
         for (Image i : response.images) {
             assertEquals(request.cameraTrap, i.cameraTrap);
         }
@@ -153,6 +191,14 @@ class ImageQueryHandlerTest {
         request.minDate = Long.valueOf("1553285042000");
         request.maxDate = Long.valueOf("1553586356000");
         request.classes = new ArrayList<>();
+
+        Item validResult = generateValidResult().withLong("date", Long.valueOf("1553285041000"));
+        Item invalidResult = generateValidResult().withLong("date", Long.valueOf("1553586357000"));
+
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(validResult, invalidResult)
+        ));
+
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
@@ -170,6 +216,15 @@ class ImageQueryHandlerTest {
         request.maxDate = null;
         request.classes = new ArrayList<>();
         request.classes.add(new ClassValue("Cow", .9));
+
+        Item validResult = generateValidResult().withDouble("class_1", .99);
+        Item invalidResult = generateValidResult().withDouble("class_1", .5);
+
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(validResult, invalidResult)
+        ));
+
+
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
@@ -189,6 +244,14 @@ class ImageQueryHandlerTest {
         request.maxDate = null;
         request.classes = new ArrayList<>();
         request.deployment = "photos_spring2019";
+
+        Item validResult = generateValidResult().withString("deployment", "photos_spring2019");
+        Item invalidResult = generateValidResult().withString("deployment", "photos_spring2020");
+
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+                Arrays.asList(validResult, invalidResult)
+        ));
+
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
