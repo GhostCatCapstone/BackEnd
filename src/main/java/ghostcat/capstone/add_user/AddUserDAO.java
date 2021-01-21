@@ -15,7 +15,7 @@ public class AddUserDAO {
   static DynamoDB dynamoDB = new DynamoDB(client);
   static String LOGIN_TABLE = "Login";
 
-  public void addUser(String userID, String passwordHash) {
+  public boolean addUser(String userID, String passwordHash) {
     Table loginTable = dynamoDB.getTable(LOGIN_TABLE);
     Item userItem = new Item();
 
@@ -23,5 +23,6 @@ public class AddUserDAO {
     userItem.withString("passwordHash", passwordHash);
 
     loginTable.putItem(userItem);
+    return true;
   }
 }

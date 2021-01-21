@@ -6,7 +6,10 @@ import ghostcat.capstone.holders.Factory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,8 +18,8 @@ public class AddUserTest {
 
   @BeforeEach
   void setUp() {
-    AddUserDAO mockDao = mock(AddUserDAO.class);
-    Factory.addUserDAO = mockDao;
+    Factory.addUserDAO = mock(AddUserDAO.class);
+    when(Factory.addUserDAO.addUser(anyString(), anyString())).thenReturn(true);
     mockContext = mock(Context.class);
     when(mockContext.getLogger()).thenReturn(mock(LambdaLogger.class));
   }
@@ -30,5 +33,29 @@ public class AddUserTest {
     AddUserHandler addUserHandler = new AddUserHandler();
     AddUserResponse response = addUserHandler.handleRequest(request, mockContext);
     assertTrue(response.success);
+  }
+
+  @Test
+  void handleNullRequest() {
+    AddUserRequest request = new AddUserRequest();
+    request.UserID = null;
+    request.passwordHash = "hashedPassword";
+
+    AddUserHandler addUserHandler = new AddUserHandler();
+    AddUserResponse response = addUserHandler.handleRequest(request, mockContext);
+    assertFalse(response.success);
+  }
+
+  @Test
+  void handleBadRequest() {
+    when(Factory.addUserDAO.addUser("UserID", "hashedPassword")).thenReturn(false);
+    AddUserRequest request = new AddUserRequest();
+    request.UserID = "UserID";
+    request.passwordHash = "hashedPassword";
+
+    AddUserHandler addUserHandler = new AddUserHandler();
+    AddUserResponse response = addUserHandler.handleRequest(request, mockContext);
+    assertFalse(response.success);
+    assertEquals("Error occurred while trying to insert into DynamoDB", response.errorMsg);
   }
 }

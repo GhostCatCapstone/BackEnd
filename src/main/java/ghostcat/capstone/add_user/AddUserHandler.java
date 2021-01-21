@@ -22,12 +22,20 @@ public class AddUserHandler implements RequestHandler<AddUserRequest, AddUserRes
       LambdaLogger logger = context.getLogger();
       logger.log("Called AddUserHandler");
     }
-    response.success = false;
-    response.errorMsg = "An error occurred while trying to insert to DynamoDB";
-    addUserDAO.addUser(request.UserID, request.passwordHash);
 
-    response.success = true;
-    response.errorMsg = "";
+    if (request.UserID == null || request.passwordHash == null) {
+      response.success = false;
+      response.errorMsg = "Null UserID or password";
+      return response;
+    }
+
+    response.success = addUserDAO.addUser(request.UserID, request.passwordHash);
+
+    if (response.success) {
+      response.errorMsg = "";
+    } else {
+      response.errorMsg = "Error occurred while trying to insert into DynamoDB";
+    }
 
     return response;
   }
