@@ -7,5 +7,5 @@ public class UpdateBBoxRequest {
     public String authToken;
     public String projectID;
     public String bboxID;
-    public ClassNameValue classNameValue;
+    public String correctClassName;
 }

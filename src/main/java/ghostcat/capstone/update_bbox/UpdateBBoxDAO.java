@@ -57,14 +57,27 @@ public class UpdateBBoxDAO {
         return results;
     }
 
-    public boolean updateItemInBBoxTable(UpdateBBoxRequest request, HashMap<String, String> classNames) {
+    public boolean setCorrectValueForBBox(UpdateBBoxRequest request, HashMap<String, String> classNames) {
         Table bboxTable = dynamoDB.getTable(BBOX_TABLE);
         UpdateItemSpec updateItemSpec = new UpdateItemSpec().
                 withPrimaryKey("UserID", request.userID, "BBoxID", request.bboxID)
-                .withUpdateExpression("set " + classNames.get(request.classNameValue.className) + " = :_v")
-                .withValueMap(new ValueMap().withNumber(":_v", request.classNameValue.classValue));
-
+                .withUpdateExpression("set " + classNames.get(request.correctClassName) + " = :_v")
+                .withValueMap(new ValueMap().withNumber(":_v", 1));
         UpdateItemOutcome outcome = bboxTable.updateItem(updateItemSpec);
+
+        //set all elements in classNames that are not in the request to 0
+        for (String className : classNames.keySet()) {
+            if (!className.equals(request.correctClassName)) {
+
+                UpdateItemSpec uSpec = new UpdateItemSpec().
+                        withPrimaryKey("UserID", request.userID, "BBoxID", request.bboxID)
+                        .withUpdateExpression("set " + classNames.get(className) + " = :_v")
+                        .withValueMap(new ValueMap().withNumber(":_v", 0));
+                UpdateItemOutcome result = bboxTable.updateItem(uSpec);
+
+            }
+        }
+
         return true;
     }
 

@@ -4,20 +4,14 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import ghostcat.capstone.authentication.TokenAuthentication;
-import ghostcat.capstone.holders.ClassNameValue;
 import ghostcat.capstone.holders.Factory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, UpdateBBoxResponse> {
 
@@ -29,6 +23,26 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
     static String PROJECT_TABLE = "ProjectData";
     static UpdateBBoxDAO dao;
 
+
+    public static void main(String[] args) {
+        dao = Factory.updateBBoxDAO;
+
+        UpdateBBoxRequest request = new UpdateBBoxRequest();
+        request.userID = "researcherID";
+        request.authToken = "";
+        request.bboxID = "021a821f-67b6-360d-813b-ed02e6a73f1d";
+        request.correctClassName = "Sheep";
+
+        HashMap<String, String> classNames = new HashMap<>();
+        classNames.put("Cow", "class_1");
+        classNames.put("Mule Deer", "class_2");
+        classNames.put("Sheep", "class_3");
+        classNames.put("Other", "class_4");
+
+        UpdateBBoxResponse response = updateBBox(request, classNames);
+        return;
+
+    }
     /**
      * Method invoked by the lambda. Updates bounding box in BoundingBoxes table.
      *
@@ -77,9 +91,6 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         if (!validToken(request.authToken, request.userID)) {
             response.errorMsg = "Invalid authToken: " + request.authToken;
             response.success = false;
-        }
-        if (request.classNameValue.classValue > 1) {
-            response.errorMsg = "Invalid value: " + request.classNameValue.classValue + " must be < 1";
         }
         if (request.bboxID == null) {
             response.success = false;
@@ -135,16 +146,16 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         }
 
         //Error handling- if a request contains a class name that isn't in classNames, then the request is invalid.
-        if (!classNames.containsKey(request.classNameValue.className)) {
+        if (!classNames.containsKey(request.correctClassName)) {
             response.success = false;
-            response.errorMsg = "Invalid class name: " + request.classNameValue.className;
+            response.errorMsg = "Invalid class name: " + request.correctClassName;
         }
 
     }
 
 
     /**
-     * Updates item in table.
+     * Updates item in table with "1" as the class value for the class in the request, and "0" for all others.
      *
      * @param request    Object that contains request parameters.
      * @param classNames Hash Map that holds relationship between a class index and a class name ("Mule Deer, "class_1")
@@ -158,7 +169,7 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
             response.errorMsg = "Invalid boundingBox ID: " + request.bboxID;
             return response;
         }
-        response.success = dao.updateItemInBBoxTable(request, classNames);
+        response.success = dao.setCorrectValueForBBox(request, classNames);
         return response;
     }
 }

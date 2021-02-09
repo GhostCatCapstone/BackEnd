@@ -3,7 +3,6 @@ package ghostcat.capstone.update_bbox;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import ghostcat.capstone.holders.ClassNameValue;
 import ghostcat.capstone.holders.Factory;
-import ghostcat.capstone.update_bbox.UpdateBBoxResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ public class UpdateBBoxHandlerTest {
         request.projectID = "projectID";
         request.authToken = "validToken";
         request.bboxID = "021a821f-67b6-360d-813b-ed02e6a73f1d";
-        request.classNameValue = new ClassNameValue("Cow", 1);
+        request.correctClassName = "Cow";
         Factory.updateBBoxDAO = mock(UpdateBBoxDAO.class);
         when(Factory.updateBBoxDAO.queryProjectDataOnUserIDAndProjectID(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(
@@ -112,7 +111,7 @@ public class UpdateBBoxHandlerTest {
         when(Factory.updateBBoxDAO.queryBBoxOnBBoxID("userID", "ValidBBoxID")).thenReturn(
                 new ArrayList<>(Arrays.asList(new Item()))
         );
-        when(Factory.updateBBoxDAO.updateItemInBBoxTable(request, classNames)).thenReturn(true);
+        when(Factory.updateBBoxDAO.setCorrectValueForBBox(request, classNames)).thenReturn(true);
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
     }
