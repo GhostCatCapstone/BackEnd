@@ -3,3 +3,4 @@
 target/
 images/
 classes/
+.DS_Store
