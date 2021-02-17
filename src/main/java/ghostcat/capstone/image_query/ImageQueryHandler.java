@@ -117,8 +117,8 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         ArrayList<Image> filtered = new ArrayList<>();
         for (Image i : imgResults) {
             boolean addImage = true;
-            if (request.cameraTrap != null) {
-                if (!request.cameraTrap.equals(i.cameraTrap)) addImage = false;
+            if (request.cameraTraps != null) {
+                if (!request.cameraTraps.contains(i.cameraTrap)) addImage = false;
             }
             if (request.deployment != null) {
                 if (!request.deployment.equals(i.deployment)) addImage = false;
@@ -242,7 +242,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      */
     private ArrayList<Item> getBBoxItems(ImageQueryRequest request) {
 
-        if (request.cameraTrap != null) return dao.queryBBoxOnCameraTrap(request);
+        if (request.cameraTraps != null) return dao.queryBBoxOnCameraTraps(request);
         else if (request.minDate != null) return dao.queryBBoxOnMinDate(request);
         else if (request.maxDate != null) return dao.queryBBoxOnMaxDate(request);
         else return dao.queryBBoxOnUserID(request);

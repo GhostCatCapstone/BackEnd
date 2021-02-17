@@ -29,7 +29,8 @@ class ImageQueryHandlerTest {
         request.deployment = "photos_spring2019";
         request.projectID = "projectID";
         request.authToken = "helloWorld";
-        request.cameraTrap = "site002";
+        request.cameraTraps = new ArrayList<>();
+        request.cameraTraps.add("site002");
         request.minDate = Long.valueOf("1556228937000");
         request.maxDate = Long.valueOf("1556228942000");
         request.classes.add(new ClassNameValue("Cow", .99));
@@ -161,8 +162,8 @@ class ImageQueryHandlerTest {
     @DisplayName("Query on camera trap")
     public void queryOnCameraTrap() {
         ImageQueryResponse response = null;
-
-        request.cameraTrap = "site004";
+        request.cameraTraps = new ArrayList<>();
+        request.cameraTraps.add("site004");
         request.minDate = null;
         request.maxDate = null;
         request.classes = new ArrayList<>();
@@ -170,7 +171,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withString("camera_trap", "site004");
         Item invalidResult = generateValidResult().withString("camera_trap", "site005");
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -178,7 +179,7 @@ class ImageQueryHandlerTest {
         response = handler.handleRequest(request, null);
         assertTrue(response.success);
         for (Image i : response.images) {
-            assertEquals(request.cameraTrap, i.cameraTrap);
+            assertTrue(request.cameraTraps.contains(i.cameraTrap));
         }
     }
 
@@ -187,7 +188,7 @@ class ImageQueryHandlerTest {
     public void queryOnDateRange() {
         ImageQueryResponse response = null;
 
-        request.cameraTrap = null;
+        request.cameraTraps = null;
         request.minDate = Long.valueOf("1553285042000");
         request.maxDate = Long.valueOf("1553586356000");
         request.classes = new ArrayList<>();
@@ -195,7 +196,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withLong("date", Long.valueOf("1553285041000"));
         Item invalidResult = generateValidResult().withLong("date", Long.valueOf("1553586357000"));
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -211,7 +212,7 @@ class ImageQueryHandlerTest {
     public void queryOnLabels() {
         ImageQueryResponse response = null;
 
-        request.cameraTrap = null;
+        request.cameraTraps = null;
         request.minDate = null;
         request.maxDate = null;
         request.classes = new ArrayList<>();
@@ -220,7 +221,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withDouble("class_1", .99);
         Item invalidResult = generateValidResult().withDouble("class_1", .5);
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -239,7 +240,7 @@ class ImageQueryHandlerTest {
     public void queryOnDeployment() {
         ImageQueryResponse response = null;
 
-        request.cameraTrap = null;
+        request.cameraTraps = null;
         request.minDate = null;
         request.maxDate = null;
         request.classes = new ArrayList<>();
@@ -248,7 +249,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withString("deployment", "photos_spring2019");
         Item invalidResult = generateValidResult().withString("deployment", "photos_spring2020");
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTrap(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
