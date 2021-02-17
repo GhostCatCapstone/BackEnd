@@ -15,12 +15,6 @@ import java.util.HashMap;
 
 public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, UpdateBBoxResponse> {
 
-    static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-            .withRegion(Regions.US_EAST_1)
-            .build();
-    static DynamoDB dynamoDB = new DynamoDB(client);
-    static String BBOX_TABLE = "BoundingBoxes";
-    static String PROJECT_TABLE = "ProjectData";
     static UpdateBBoxDAO dao;
 
 
