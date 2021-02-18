@@ -1,5 +1,6 @@
 package ghostcat.capstone.holders;
 
+import ghostcat.capstone.add_bbox.AddBBoxDAO;
 import ghostcat.capstone.add_project.AddProjectDAO;
 import ghostcat.capstone.authentication.TokenAuthenticationDAO;
 import ghostcat.capstone.delete_bbox.DeleteBBoxDAO;
@@ -16,6 +17,8 @@ public class Factory {
     public static UpdateBBoxDAO updateBBoxDAO;
     public static DeleteBBoxDAO deleteBBoxDAO;
     public static GetCameraTrapsDAO getCameraTrapsDAO;
+    public static AddBBoxDAO addBBoxDAO;
+
     static {
       addProjectDAO = new AddProjectDAO();
       loginDAO = new LoginDAO();
@@ -24,6 +27,7 @@ public class Factory {
       updateBBoxDAO = new UpdateBBoxDAO();
       deleteBBoxDAO = new DeleteBBoxDAO();
       getCameraTrapsDAO = new GetCameraTrapsDAO();
+      addBBoxDAO = new AddBBoxDAO();
     }
 
 }
