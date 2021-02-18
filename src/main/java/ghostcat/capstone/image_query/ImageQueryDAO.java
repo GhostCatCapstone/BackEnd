@@ -59,22 +59,27 @@ public class ImageQueryDAO {
         return results;
     }
 
-    public ArrayList<Item> queryBBoxOnCameraTrap(ImageQueryRequest request) {
+
+    public ArrayList<Item> queryBBoxOnCameraTraps(ImageQueryRequest request) {
         ArrayList<Item> results = new ArrayList<>();
+
         Table bboxTable = dynamoDB.getTable(BBOX_TABLE);
         Index cameraTrapIndex = bboxTable.getIndex(CAMERA_TRAP_INDEX);
 
-        String keyExp = "UserID = :v_userID and camera_trap = :v_cameraTrap";
-        ValueMap values = new ValueMap()
-                .withString(":v_userID", request.userID)
-                .withString(":v_cameraTrap", request.cameraTrap);
-        QuerySpec spec = new QuerySpec()
-                .withKeyConditionExpression(keyExp)
-                .withValueMap(values);
+        for (String cameraTrap : request.cameraTraps) {
+            String keyExp = "UserID = :v_userID and camera_trap = :v_cameraTrap";
+            ValueMap values = new ValueMap()
+                    .withString(":v_userID", request.userID)
+                    .withString(":v_cameraTrap", cameraTrap);
+            QuerySpec spec = new QuerySpec()
+                    .withKeyConditionExpression(keyExp)
+                    .withValueMap(values);
 
-        ItemCollection<QueryOutcome> items = cameraTrapIndex.query(spec);
-        Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) results.add(iterator.next());
+            ItemCollection<QueryOutcome> items = cameraTrapIndex.query(spec);
+            Iterator<Item> iterator = items.iterator();
+            while (iterator.hasNext()) results.add(iterator.next());
+        }
+
         return results;
     }
 

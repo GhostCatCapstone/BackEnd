@@ -1,31 +1,33 @@
-package ghostcat.capstone.update_bbox;
+package ghostcat.capstone.add_bbox;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.*;
-
+import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import ghostcat.capstone.holders.Factory;
+import ghostcat.capstone.holders.Image;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
-public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, UpdateBBoxResponse> {
-
-    static UpdateBBoxDAO dao;
+public class AddBBoxHandler {
+    static AddBBoxDAO dao;
 
 
     public static void main(String[] args) {
-        dao = Factory.updateBBoxDAO;
+        dao = Factory.addBBoxDAO;
 
-        UpdateBBoxRequest request = new UpdateBBoxRequest();
-        request.userID = "researcherID";
+        AddBBoxRequest request = new AddBBoxRequest();
+        request.imgId = "1081301";
+        request.className = "Cow";
         request.authToken = "";
-        request.bboxID = "021a821f-67b6-360d-813b-ed02e6a73f1d";
-        request.correctClassName = "Sheep";
+        request.height = .3;
+        request.width = .3;
+        request.projectID = "projectID";
+        request.userID = "researcherID";
+        request.xVal = .1;
+        request.yVal = .1;
+
 
         HashMap<String, String> classNames = new HashMap<>();
         classNames.put("Cow", "class_1");
@@ -33,7 +35,7 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         classNames.put("Sheep", "class_3");
         classNames.put("Other", "class_4");
 
-        UpdateBBoxResponse response = updateBBox(request, classNames);
+        AddBBoxResponse response = addBBox(request, classNames);
         return;
 
     }
@@ -43,9 +45,10 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
      * @param request Object that contains query parameters.
      * @return Object that contains success/fail boolean and an optional error message.
      */
-    public UpdateBBoxResponse handleRequest(UpdateBBoxRequest request, Context context) {
-        dao = Factory.updateBBoxDAO;
-        UpdateBBoxResponse response = new UpdateBBoxResponse();
+    public AddBBoxResponse handleRequest(AddBBoxRequest request, Context context) {
+        dao = Factory.addBBoxDAO;
+
+        AddBBoxResponse response = new AddBBoxResponse();
         HashMap<String, String> classNames = new HashMap<>();
 
         if (context != null) {
@@ -59,7 +62,7 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         getUserInfo(request, classNames, response);
         if (!response.success) return response;
 
-        response = updateBBox(request, classNames);
+        response = addBBox(request, classNames);
 
         return response;
     }
@@ -70,8 +73,8 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
      * @param request Object that contains request parameters.
      * @return Response object that will contain error message if request is invalid.
      */
-    public static UpdateBBoxResponse errorCheckRequest(UpdateBBoxRequest request) {
-        UpdateBBoxResponse response = new UpdateBBoxResponse();
+    public static AddBBoxResponse errorCheckRequest(AddBBoxRequest request) {
+        AddBBoxResponse response = new AddBBoxResponse();
         response.success = true;
 
         if (request.userID == null) {
@@ -85,10 +88,6 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         if (!validToken(request.authToken, request.userID)) {
             response.errorMsg = "Invalid authToken: " + request.authToken;
             response.success = false;
-        }
-        if (request.bboxID == null) {
-            response.success = false;
-            response.errorMsg = "Null bboxID";
         }
 
         return response;
@@ -112,7 +111,7 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
      * @param response   Response object that will contain error message if an error occurs.
      * @return The number of classes associated with a user's data set.
      */
-    public static void getUserInfo(UpdateBBoxRequest request, HashMap<String, String> classNames, UpdateBBoxResponse response) {
+    public static void getUserInfo(AddBBoxRequest request, HashMap<String, String> classNames, AddBBoxResponse response) {
 
         ArrayList<Item> results = dao.queryProjectDataOnUserIDAndProjectID(request);
 
@@ -140,30 +139,31 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         }
 
         //Error handling- if a request contains a class name that isn't in classNames, then the request is invalid.
-        if (!classNames.containsKey(request.correctClassName)) {
+        if (!classNames.containsKey(request.className)) {
             response.success = false;
-            response.errorMsg = "Invalid class name: " + request.correctClassName;
+            response.errorMsg = "Invalid class name: " + request.className;
         }
 
     }
 
-
     /**
-     * Updates item in table with "1" as the class value for the class in the request, and "0" for all others.
-     *
-     * @param request    Object that contains request parameters.
-     * @param classNames Hash Map that holds relationship between a class index and a class name ("Mule Deer, "class_1")
-     * @return Response object with success/failure boolean and optional error message.
+     * Adds bounding box from the request object to the database. Retrieves the image associated with the
+     * request's imgID, creates a UUID for the bounding box, and passes all of that to the DAO. The DAO
+     * adds the data to the database.
+     * @param request Request object containing all information about the bounding box.
+     * @param classNames Hash Map that holds relationship between a class name and a class index ("Mule Deer, "class_1")
+     * @return Response object indicating the success of the operation.
      */
-    public static UpdateBBoxResponse updateBBox(UpdateBBoxRequest request, HashMap<String, String> classNames) {
-        UpdateBBoxResponse response = new UpdateBBoxResponse();
-        ArrayList<Item> results = dao.queryBBoxOnBBoxID(request.userID, request.bboxID);
-        if (results.size() == 0) {
+    public static AddBBoxResponse addBBox(AddBBoxRequest request, HashMap<String, String> classNames) {
+        AddBBoxResponse response = new AddBBoxResponse();
+        Image bboxImage = dao.queryBBoxOnImageID(request.imgId, request.userID);
+        if (bboxImage == null) {
+            response.errorMsg = "Invalid imageID: " + request.imgId;
             response.success = false;
-            response.errorMsg = "Invalid boundingBox ID: " + request.bboxID;
             return response;
         }
-        response.success = dao.setCorrectValueForBBox(request, classNames);
+        response.success = dao.addBBox(request, classNames, bboxImage, UUID.randomUUID().toString());
+        if (!response.success) response.errorMsg = "Error adding bounding box to database.";
         return response;
     }
 }

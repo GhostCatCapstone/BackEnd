@@ -21,8 +21,6 @@ public class UpdateBBoxDAO {
     static DynamoDB dynamoDB = new DynamoDB(client);
     static String BBOX_TABLE = "BoundingBoxes";
     static String PROJECT_TABLE = "ProjectData";
-    static String DATE_INDEX = "UserID-img_date-index";
-    static String CAMERA_TRAP_INDEX = "UserID-camera_trap-index";
 
     public ArrayList<Item> queryProjectDataOnUserIDAndProjectID(UpdateBBoxRequest request) {
         Table userDataTable = dynamoDB.getTable(PROJECT_TABLE);

@@ -11,6 +11,6 @@ public class ImageQueryRequest {
     public Long minDate;
     public Long maxDate;
     public String deployment;
-    public String cameraTrap;
+    public ArrayList<String> cameraTraps;
     public ArrayList<ClassNameValue> classes = new ArrayList<>();
 }
