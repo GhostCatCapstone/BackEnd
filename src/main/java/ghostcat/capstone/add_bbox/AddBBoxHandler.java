@@ -146,6 +146,14 @@ public class AddBBoxHandler {
 
     }
 
+    /**
+     * Adds bounding box from the request object to the database. Retrieves the image associated with the
+     * request's imgID, creates a UUID for the bounding box, and passes all of that to the DAO. The DAO
+     * adds the data to the database.
+     * @param request Request object containing all information about the bounding box.
+     * @param classNames Hash Map that holds relationship between a class name and a class index ("Mule Deer, "class_1")
+     * @return Response object indicating the success of the operation.
+     */
     public static AddBBoxResponse addBBox(AddBBoxRequest request, HashMap<String, String> classNames) {
         AddBBoxResponse response = new AddBBoxResponse();
         Image bboxImage = dao.queryBBoxOnImageID(request.imgId, request.userID);
