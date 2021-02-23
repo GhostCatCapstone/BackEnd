@@ -1,10 +1,13 @@
-## Welcome to the GhostCat BackEnd!
+# Welcome to the GhostCat BackEnd!
 This is the backend repository for the GhostCat BYU capstone project. This repository contains lambda functions that recieve requests from the frontend, perform operations on a database, and return a response.
+
+#### **[For a step by step tutorial on building and deploying a lambda, click here!](https://docs.google.com/document/d/159QIjV8JvJhOQFkFjZfmi62cm9aKtrHiyvJkb0HPpi0/edit?usp=sharing)**
 
 This backend is in Java, hosted entirely on AWS, and has the following components:
 
 [flowchart]
 
+# Components
 ## API Gateway
 Handles calls from the frontend, and calls the appropriate lambda.
 
