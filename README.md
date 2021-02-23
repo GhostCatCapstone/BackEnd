@@ -20,8 +20,7 @@ In this repository, each lambda is organized into a package that contains four f
 * **Handler**: contains the handleRequest() method invoked by the AWS lambda. Handles all server logic. Processes requests, and returns a response. 
 * **DAO**: encapsulates all calls to the DynamoDB server. DAO classes can easily be swapped out if a different type of server is needed. 
 
-[Instructions on creating and invoking a lambda function can be found here].  
-
+#### **[Instructions on building and deploying a lambda can be found here.](https://docs.google.com/document/d/159QIjV8JvJhOQFkFjZfmi62cm9aKtrHiyvJkb0HPpi0/edit?usp=sharing)**
 ## DynamoDB
 Stores all GhostCat data, excluding images. This includes:
 * Image metadata: date, time, location, etc. of images.
