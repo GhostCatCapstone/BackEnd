@@ -3,11 +3,12 @@ This is the backend repository for the GhostCat BYU capstone project. This repos
 
 #### **[For a step by step tutorial on building and deploying a lambda, click here!](https://docs.google.com/document/d/159QIjV8JvJhOQFkFjZfmi62cm9aKtrHiyvJkb0HPpi0/edit?usp=sharing)**
 
+# Components
+
 This backend is in Java, hosted entirely on AWS, and has the following components:
 
 [flowchart]
 
-# Components
 ## API Gateway
 Handles calls from the frontend, and calls the appropriate lambda.
 
@@ -30,11 +31,11 @@ Stores all GhostCat data, excluding images. This includes:
 
 
 The tables are:
-* [Auth](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Auth;tab=items): Used to verify that a user is logged in
-* [BoundingBoxes](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=BoundingBoxes;tab=items): Holds all data related to images and bounding boxes. Queried when a user makes a search. 
-* [CameraTraps](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=CameraTraps;tab=items): Contains the camera traps associated with each projectID. 
-* [Login](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Login;tab=items): Used to login a user. Holds all userIDs and their associated hashed passwords. 
-* [ProjectData](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=ProjectData;tab=items): Contains the classes associated with each projectID. 
+* **[Auth](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Auth;tab=items):** Used to verify that a user is logged in
+* **[BoundingBoxes](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=BoundingBoxes;tab=items):** Holds all data related to images and bounding boxes. Queried when a user makes a search. 
+* **[CameraTraps](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=CameraTraps;tab=items):** Contains the camera traps associated with each projectID. 
+* **[Login](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Login;tab=items):** Used to login a user. Holds all userIDs and their associated hashed passwords. 
+* **[ProjectData](https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=ProjectData;tab=items):** Contains the classes associated with each projectID. 
 
 
 ## S3
