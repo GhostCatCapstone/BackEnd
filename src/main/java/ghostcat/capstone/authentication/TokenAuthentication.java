@@ -24,7 +24,7 @@ public class TokenAuthentication {
      * @param userID User's ID
      * @return True if user is authenticated, false if user is not authenticated.
      */
-    public boolean authenticateToken(String authToken, String userID) {
+    public static boolean authenticateToken(String authToken, String userID) {
         TokenAuthenticationDAO dao = Factory.tokenAuthenticationDAO;
         Item i = dao.queryAuthTable(authToken);
         if (i == null) return false;
