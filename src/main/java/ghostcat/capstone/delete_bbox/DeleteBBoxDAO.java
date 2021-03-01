@@ -8,6 +8,7 @@ import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import ghostcat.capstone.holders.Image;
 import ghostcat.capstone.update_bbox.UpdateBBoxRequest;
 
 import java.util.ArrayList;
@@ -21,7 +22,30 @@ public class DeleteBBoxDAO {
     static DynamoDB dynamoDB = new DynamoDB(client);
     static String BBOX_TABLE = "BoundingBoxes";
     static String PROJECT_TABLE = "ProjectData";
+    static String IMAGE_ID_INDEX = "UserID-img_id-index";
 
+    public int getBBoxCountInImage(String imageID, String userID) {
+        Table bboxTable = dynamoDB.getTable(BBOX_TABLE);
+        Index imgIdIndex = bboxTable.getIndex(IMAGE_ID_INDEX);
+
+
+        String keyExp = "UserID = :v_userID and img_id = :v_imgID";
+        ValueMap values = new ValueMap()
+                .withString(":v_userID", userID)
+                .withString(":v_imgID", imageID);
+        QuerySpec spec = new QuerySpec()
+                .withKeyConditionExpression(keyExp)
+                .withValueMap(values);
+
+        ItemCollection<QueryOutcome> items = imgIdIndex.query(spec);
+        Iterator<Item> iterator = items.iterator();
+        int count = 0;
+        while(iterator.hasNext()) {
+            iterator.next();
+            ++count;
+        }
+        return count;
+    }
 
     public boolean deleteBBox(DeleteBBoxRequest request) {
         Table bboxTable = dynamoDB.getTable(BBOX_TABLE);

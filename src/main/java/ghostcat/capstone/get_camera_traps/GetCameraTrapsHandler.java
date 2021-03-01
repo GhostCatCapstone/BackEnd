@@ -1,19 +1,12 @@
 package ghostcat.capstone.get_camera_traps;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import ghostcat.capstone.get_camera_traps.GetCameraTrapsRequest;
-import ghostcat.capstone.get_camera_traps.GetCameraTrapsResponse;
 import ghostcat.capstone.holders.CameraTrap;
 import ghostcat.capstone.holders.Factory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class GetCameraTrapsHandler {
     static GetCameraTrapsDAO dao;

@@ -39,8 +39,8 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         numClasses = getUserInfo(request, classNames, response);
         if (!response.success) return response;
 
-        ArrayList<Image> imgResults = queryBBoxDB(request, classNames, numClasses);
-        ArrayList<Image> filteredResults = filterResultsOnMetadata(imgResults, request);
+        ArrayList<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
+        ArrayList<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
         filteredResults = filterResultsOnClass(filteredResults, request, classNames);
 
         response.images = filteredResults;
@@ -148,6 +148,10 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
                                                         HashMap<String, String> classNames) {
         ArrayList<Image> filteredImages = new ArrayList<>();
         if (request.classes == null || request.classes.size() == 0) return imgResults;
+
+        //remove all images that have no bounding boxes
+        for (Image i : imgResults) if (i.boundingBoxes.size() == 0) imgResults.remove(i);
+
         for (Image i : imgResults) {
             boolean addImg = true;
             for (BoundingBox b : i.boundingBoxes) {
@@ -236,16 +240,49 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * The BoundingBox table has indexes that can be used to add request parameters to the query.
      * The database can only be queried on one index at a time, so priority is given to the request parameters that might yield
      * the most specific results.
+     * Identical queries are also performed on the Images table, which holds all information about images.
+     * The query results from the Images table are checked against the results from the BoundingBox table.
+     * If an Image result is not found in the list of BoundingBox results, it is added to the list.
+     * This is because we want the user to be able to access images that have no bounding boxes associated with them.
      *
-     * @param request         Object that contains query parameters.
+     * @param request Object that contains query parameters.
      * @return The outcome of the database query.
      */
     private ArrayList<Item> getBBoxItems(ImageQueryRequest request) {
+        if (request.cameraTraps != null) {
+            ArrayList<Item> bboxResults = dao.queryBBoxOnCameraTraps(request);
+            ArrayList<Item> imgResults = dao.queryImagesOnCameraTrap(request);
+            return combineImageResultsWithBBoxResults(imgResults, bboxResults);
+        }
+        else if (request.minDate != null) {
+            ArrayList<Item> bboxResults = dao.queryBBoxOnMinDate(request);
+            ArrayList<Item> imgResults = dao.queryImagesOnMinDate(request);
+            return combineImageResultsWithBBoxResults(imgResults, bboxResults);
+        }
+        else if (request.maxDate != null)  {
+            ArrayList<Item> bboxResults = dao.queryBBoxOnMaxDate(request);
+            ArrayList<Item> imgResults = dao.queryImagesOnMaxDate(request);
+            return combineImageResultsWithBBoxResults(imgResults, bboxResults);
+        }
+        else {
+            ArrayList<Item> bboxResults = dao.queryBBoxOnUserID(request);
+            ArrayList<Item> imgResults = dao.queryImagesOnUserID(request);
+            return combineImageResultsWithBBoxResults(imgResults, bboxResults);
+        }
+    }
 
-        if (request.cameraTraps != null) return dao.queryBBoxOnCameraTraps(request);
-        else if (request.minDate != null) return dao.queryBBoxOnMinDate(request);
-        else if (request.maxDate != null) return dao.queryBBoxOnMaxDate(request);
-        else return dao.queryBBoxOnUserID(request);
+    private ArrayList<Item> combineImageResultsWithBBoxResults(ArrayList<Item> imgResults, ArrayList<Item> bboxResults) {
+        ArrayList<Item> combinedList = new ArrayList<>(bboxResults);
+        for (Item imgItem : imgResults) {
+            boolean addItem = true;
+            for (Item bboxItem : bboxResults) {
+                if (bboxItem.getString("img_id").equals(imgItem.getString("img_id"))) {
+                    addItem = false;
+                }
+            }
+            if (addItem) combinedList.add(imgItem);
+        }
+        return combinedList;
     }
 
     /**
@@ -275,19 +312,20 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
                 );
                 formattedResults.add(image);
             }
+            if (i.hasAttribute("BBoxID")) {
+                BoundingBox boundingBox = new BoundingBox(
+                        i.getString("BBoxID"),
+                        i.getString("img_id"),
+                        i.getDouble("bbox_X"),
+                        i.getDouble("bbox_Y"),
+                        i.getDouble("bbox_width"),
+                        i.getDouble("bbox_height"));
 
-            BoundingBox boundingBox = new BoundingBox(
-                    i.getString("BBoxID"),
-                    i.getString("img_id"),
-                    i.getDouble("bbox_X"),
-                    i.getDouble("bbox_Y"),
-                    i.getDouble("bbox_width"),
-                    i.getDouble("bbox_height"));
-
-            for (int j = 1; j <= numClasses; ++j) {
-                boundingBox.classes.put(getNameFromIndex("class_" + j, classNames), i.getDouble("class_" + j));
+                for (int j = 1; j <= numClasses; ++j) {
+                    boundingBox.classes.put(getNameFromIndex("class_" + j, classNames), i.getDouble("class_" + j));
+                }
+                addBBox(boundingBox, formattedResults);
             }
-            addBBox(boundingBox, formattedResults);
         }
         return formattedResults;
     }
