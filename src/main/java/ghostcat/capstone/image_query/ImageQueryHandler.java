@@ -3,12 +3,14 @@ package ghostcat.capstone.image_query;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.google.gson.Gson;
 import ghostcat.capstone.holders.BoundingBox;
 import ghostcat.capstone.holders.ClassNameValue;
 import ghostcat.capstone.holders.Factory;
 import ghostcat.capstone.holders.Image;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -23,25 +25,9 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         request.userID = "researcherID";
         request.authToken = "token";
         request.projectID = "projectID";
-        request.cameraTraps.add("site002");
-        request.classes.add(new ClassNameValue("Mule Deer", .5));
-        ImageQueryResponse response = new ImageQueryResponse();
-        dao = Factory.imageQueryDAO;
-        HashMap<String, String> classNames = new HashMap<>();
-        int numClasses = 0;
-
-        response = errorCheckRequest(request);
-        if (!response.success) return;
-
-        numClasses = getUserInfo(request, classNames, response);
-        if (!response.success) return;
-
-        ArrayList<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
-        ArrayList<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
-        filteredResults = filterResultsOnClass(filteredResults, request, classNames);
-
-        response.images = filteredResults;
-        response.success = true;
+        request.minDate = new Long(0);
+        ImageQueryResponse response = doQuery(request);
+        return;
     }
 
     /**
@@ -51,6 +37,10 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @return Object that contains query results, or an error message if something went wrong.
      */
     public ImageQueryResponse handleRequest(ImageQueryRequest request, Context context) {
+        return doQuery(request);
+    }
+
+    public static ImageQueryResponse doQuery(ImageQueryRequest request) {
         ImageQueryResponse response = new ImageQueryResponse();
         dao = Factory.imageQueryDAO;
         HashMap<String, String> classNames = new HashMap<>();
@@ -67,7 +57,11 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         filteredResults = filterResultsOnClass(filteredResults, request, classNames);
 
         response.images = filteredResults;
+
+        Collections.sort(response.images);
+
         response.success = true;
+        response.errorMsg = "Request: " + request.str();
 
         return response;
     }
@@ -140,7 +134,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         ArrayList<Image> filtered = new ArrayList<>();
         for (Image i : imgResults) {
             boolean addImage = true;
-            if (request.cameraTraps != null) {
+            if (request.cameraTraps != null && request.cameraTraps.size() > 0) {
                 if (!request.cameraTraps.contains(i.cameraTrap)) addImage = false;
             }
             if (request.deployment != null) {
@@ -282,7 +276,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      */
     private static ArrayList<Item>[] getDBItems(ImageQueryRequest request) {
         ArrayList<Item>[] results = new ArrayList[2];
-        if (request.cameraTraps != null) {
+        if (request.cameraTraps != null && request.cameraTraps.size() > 0) {
             results[0] = dao.queryBBoxOnCameraTraps(request);
             results[1] = dao.queryImagesOnCameraTrap(request);
         }

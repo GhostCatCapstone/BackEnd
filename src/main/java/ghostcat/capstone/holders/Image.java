@@ -2,7 +2,7 @@ package ghostcat.capstone.holders;
 
 import java.util.ArrayList;
 
-public class Image {
+public class Image implements Comparable<Image>{
     public String id;
     public int imgWidth;
     public int imgHeight;
@@ -42,5 +42,11 @@ public class Image {
         this.imgLink = imgLink;
     }
 
+    @Override
+    public int compareTo(Image o) {
+        if (o.date > date) return 1;
+        if (o.date < date) return -1;
+        return 0;
+    }
 }
 
