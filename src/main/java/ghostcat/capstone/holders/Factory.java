@@ -6,6 +6,7 @@ import ghostcat.capstone.add_project.AddProjectDAO;
 import ghostcat.capstone.authentication.TokenAuthenticationDAO;
 import ghostcat.capstone.delete_bbox.DeleteBBoxDAO;
 import ghostcat.capstone.get_camera_traps.GetCameraTrapsDAO;
+import ghostcat.capstone.get_project_data.GetProjectDataDAO;
 import ghostcat.capstone.image_query.ImageQueryDAO;
 import ghostcat.capstone.loginLambda.LoginDAO;
 import ghostcat.capstone.update_bbox.UpdateBBoxDAO;
@@ -24,6 +25,7 @@ public class Factory {
     public static AddBBoxDAO addBBoxDAO;
     public static AddCameraTrapDAO addCameraTrapDAO;
     public static PasswordChangeDAO passwordChangeDAO;
+    public static GetProjectDataDAO getProjectDataDAO;
 
     static {
       addProjectDAO = new AddProjectDAO();
@@ -37,6 +39,7 @@ public class Factory {
       addBBoxDAO = new AddBBoxDAO();
       addCameraTrapDAO = new AddCameraTrapDAO();
       passwordChangeDAO = new PasswordChangeDAO();
+      getProjectDataDAO = new GetProjectDataDAO();
     }
 
 }

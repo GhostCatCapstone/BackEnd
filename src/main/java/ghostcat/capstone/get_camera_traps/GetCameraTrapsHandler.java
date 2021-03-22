@@ -20,8 +20,6 @@ public class GetCameraTrapsHandler {
 
         response = getCameraTraps(request);
         return;
-
-
     }
 
     /**
