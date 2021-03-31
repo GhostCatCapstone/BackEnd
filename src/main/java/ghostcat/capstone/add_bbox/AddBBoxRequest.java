@@ -2,7 +2,6 @@ package ghostcat.capstone.add_bbox;
 
 public class AddBBoxRequest {
     public String userID;
-    public String authToken;
     public String projectID;
     public String imgId;
     public double xVal;

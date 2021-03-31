@@ -28,7 +28,6 @@ class ImageQueryHandlerTest {
         request.userID = "researcherID";
         request.deployment = "photos_spring2019";
         request.projectID = "projectID";
-        request.authToken = "helloWorld";
         request.cameraTraps = new ArrayList<>();
         request.cameraTraps.add("site002");
         request.minDate = Long.valueOf("1556228937000");

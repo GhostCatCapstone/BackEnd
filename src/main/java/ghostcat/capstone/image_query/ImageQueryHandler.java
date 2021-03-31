@@ -19,17 +19,6 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
     static ImageQueryDAO dao;
 
 
-
-    public static void main(String[] args) {
-        ImageQueryRequest request = new ImageQueryRequest();
-        request.userID = "researcherID";
-        request.authToken = "token";
-        request.projectID = "projectID";
-        request.minDate = new Long(0);
-        ImageQueryResponse response = doQuery(request);
-        return;
-    }
-
     /**
      * Method invoked by the lambda. Queries DynamoDB, and filters the results based on the request.
      *
@@ -84,14 +73,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
             response.success = false;
             response.errorMsg = "Null projectID";
         }
-        if (request.authToken == null) {
-            response.success = false;
-            response.errorMsg = "Null authToken";
-        }
-        if (!validToken(request.authToken, request.userID)) {
-            response.errorMsg = "Invalid authToken: " + request.authToken;
-            response.success = false;
-        }
+
         if (request.minDate != null && request.maxDate != null) {
             if (request.maxDate <= request.minDate) {
                 response.success = false;
@@ -112,16 +94,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         return response;
     }
 
-    /**
-     * Determines the user's authentication status.
-     *
-     * @param authToken String passed from the front end that represents user authentication
-     * @param userID    User's ID
-     * @return True if user is authenticated, false if user is not authenticated.
-     */
-    public static boolean validToken(String authToken, String userID) {
-        return true;
-    }
+
 
     /**
      * Filters a list of images by the image metadata parameters provided by the request body.

@@ -26,7 +26,6 @@ public class UpdateBBoxHandlerTest {
         request = new UpdateBBoxRequest();
         request.userID = "researcherID";
         request.projectID = "projectID";
-        request.authToken = "validToken";
         request.bboxID = "021a821f-67b6-360d-813b-ed02e6a73f1d";
         request.correctClassName = "Cow";
         Factory.updateBBoxDAO = mock(UpdateBBoxDAO.class);
