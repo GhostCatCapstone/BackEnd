@@ -17,15 +17,14 @@ public class GetProjectDataDAO {
     static DynamoDB dynamoDB = new DynamoDB(client);
     static String PROJECT_TABLE = "ProjectData";
 
-    public ArrayList<Item> queryProjectDataOnUserIDAndProjectID(GetProjectDataRequest request) {
+    public ArrayList<Item> queryProjectDataOnUserID(String userID) {
         Table userDataTable = dynamoDB.getTable(PROJECT_TABLE);
         ArrayList<Item> results = new ArrayList<>();
 
         QuerySpec spec = new QuerySpec()
-                .withKeyConditionExpression("UserID = :v_userID and ProjectID = :v_projectID")
+                .withKeyConditionExpression("UserID = :v_userID")
                 .withValueMap(new ValueMap()
-                        .withString(":v_userID", request.userID)
-                        .withString(":v_projectID", request.projectID)
+                        .withString(":v_userID", userID)
                 );
         ItemCollection<QueryOutcome> items = userDataTable.query(spec);
         Iterator<Item> iterator = items.iterator();
