@@ -44,8 +44,8 @@ public class Image implements Comparable<Image>{
 
     @Override
     public int compareTo(Image o) {
-        if (o.date > date) return 1;
-        if (o.date < date) return -1;
+        if (Integer.valueOf(id) > Integer.valueOf(o.id)) return 1;
+        if (Integer.valueOf(id) < Integer.valueOf(o.id)) return -1;
         return 0;
     }
 }

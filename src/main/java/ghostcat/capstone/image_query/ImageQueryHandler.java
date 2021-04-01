@@ -18,6 +18,13 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
 
     static ImageQueryDAO dao;
 
+    public static void main(String[] args) {
+        ImageQueryRequest request = new ImageQueryRequest();
+        request.userID = "researcherID";
+        request.projectID = "projectID";
+        doQuery(request);
+
+    }
 
     /**
      * Method invoked by the lambda. Queries DynamoDB, and filters the results based on the request.
