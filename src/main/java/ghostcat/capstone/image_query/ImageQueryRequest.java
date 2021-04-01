@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 public class ImageQueryRequest {
     public String userID;
-    public String authToken;
     public String projectID;
     public Long minDate;
     public Long maxDate;
@@ -19,8 +18,6 @@ public class ImageQueryRequest {
         String s = "";
         s += "userID: ";
         if (userID != null) s += userID; else s += "null";
-        s += " authToken: ";
-        if (authToken != null) s += authToken; else s += "null";
         s += " projectID: ";
         if (projectID != null) s += projectID; else s += "null";
         s += " minDate: ";

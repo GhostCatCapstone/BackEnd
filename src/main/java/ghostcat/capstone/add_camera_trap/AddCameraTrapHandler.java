@@ -1,6 +1,5 @@
 package ghostcat.capstone.add_camera_trap;
 
-import ghostcat.capstone.authentication.TokenAuthentication;
 import ghostcat.capstone.holders.Factory;
 
 public class AddCameraTrapHandler {
@@ -40,10 +39,6 @@ public class AddCameraTrapHandler {
             response.success = false;
             response.errorMsg = "Null userID";
         }
-        if (request.authToken == null) {
-            response.success = false;
-            response.errorMsg = "Null authToken";
-        }
         if (request.projectID == null) {
             response.success = false;
             response.errorMsg = "Null projectID";
@@ -52,19 +47,11 @@ public class AddCameraTrapHandler {
             response.success = false;
             response.errorMsg = "Null cameraTrapID";
         }
-        if (!validToken(request.authToken, request.userID)) {
-            response.errorMsg = "Invalid authToken: " + request.authToken;
-            response.success = false;
-        }
+
         return response;
     }
 
-    /**
-     * Authenticates request (copy and paste this method into your lambda)
-     */
-    public boolean validToken(String authToken, String userID) {
-        return TokenAuthentication.authenticateToken(authToken, userID);
-    }
+
 
     /**
      * Calls DAO to perform operation on database.

@@ -17,26 +17,6 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
 
     static UpdateBBoxDAO dao;
 
-
-    public static void main(String[] args) {
-        dao = Factory.updateBBoxDAO;
-
-        UpdateBBoxRequest request = new UpdateBBoxRequest();
-        request.userID = "researcherID";
-        request.authToken = "";
-        request.bboxID = "021a821f-67b6-360d-813b-ed02e6a73f1d";
-        request.correctClassName = "Sheep";
-
-        HashMap<String, String> classNames = new HashMap<>();
-        classNames.put("Cow", "class_1");
-        classNames.put("Mule Deer", "class_2");
-        classNames.put("Sheep", "class_3");
-        classNames.put("Other", "class_4");
-
-        UpdateBBoxResponse response = updateBBox(request, classNames);
-        return;
-
-    }
     /**
      * Method invoked by the lambda. Updates bounding box in BoundingBoxes table.
      *
@@ -78,14 +58,7 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
             response.success = false;
             response.errorMsg = "Null userID";
         }
-        if (request.authToken == null) {
-            response.success = false;
-            response.errorMsg = "Null authToken";
-        }
-        if (!validToken(request.authToken, request.userID)) {
-            response.errorMsg = "Invalid authToken: " + request.authToken;
-            response.success = false;
-        }
+
         if (request.bboxID == null) {
             response.success = false;
             response.errorMsg = "Null bboxID";
@@ -94,10 +67,6 @@ public class UpdateBBoxHandler implements RequestHandler<UpdateBBoxRequest, Upda
         return response;
     }
 
-    public static boolean validToken(String authToken, String userID) {
-        //return TokenAuthentication.authenticateToken(authToken, userID);
-        return true;
-    }
 
     /**
      * Retrieves user data from the ProjectData DynamoDB table. Specifically looks up the number of classes for a user's

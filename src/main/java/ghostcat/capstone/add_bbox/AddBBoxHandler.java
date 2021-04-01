@@ -20,7 +20,6 @@ public class AddBBoxHandler {
         AddBBoxRequest request = new AddBBoxRequest();
         request.imgId = "1081301";
         request.className = "Cow";
-        request.authToken = "";
         request.height = .3;
         request.width = .3;
         request.projectID = "projectID";
@@ -81,22 +80,11 @@ public class AddBBoxHandler {
             response.success = false;
             response.errorMsg = "Null userID";
         }
-        if (request.authToken == null) {
-            response.success = false;
-            response.errorMsg = "Null authToken";
-        }
-        if (!validToken(request.authToken, request.userID)) {
-            response.errorMsg = "Invalid authToken: " + request.authToken;
-            response.success = false;
-        }
 
         return response;
     }
 
-    public static boolean validToken(String authToken, String userID) {
-        //return TokenAuthentication.authenticateToken(authToken, userID);
-        return true;
-    }
+
 
     /**
      * Retrieves user data from the ProjectData DynamoDB table. Specifically looks up the number of classes for a user's
