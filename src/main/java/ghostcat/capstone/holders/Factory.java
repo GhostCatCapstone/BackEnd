@@ -7,6 +7,7 @@ import ghostcat.capstone.delete_bbox.DeleteBBoxDAO;
 import ghostcat.capstone.get_camera_traps.GetCameraTrapsDAO;
 import ghostcat.capstone.get_project_data.GetProjectDataDAO;
 import ghostcat.capstone.image_query.ImageQueryDAO;
+import ghostcat.capstone.metadata_upload.MetadataUploadDAO;
 import ghostcat.capstone.update_bbox.UpdateBBoxDAO;
 
 public class Factory {
@@ -18,6 +19,7 @@ public class Factory {
     public static AddBBoxDAO addBBoxDAO;
     public static AddCameraTrapDAO addCameraTrapDAO;
     public static GetProjectDataDAO getProjectDataDAO;
+    public static MetadataUploadDAO metadataUploadDAO;
 
     static {
       addProjectDAO = new AddProjectDAO();
@@ -28,6 +30,7 @@ public class Factory {
       addBBoxDAO = new AddBBoxDAO();
       addCameraTrapDAO = new AddCameraTrapDAO();
       getProjectDataDAO = new GetProjectDataDAO();
+      metadataUploadDAO = new MetadataUploadDAO();
     }
 
 }
