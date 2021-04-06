@@ -78,7 +78,7 @@ public class MetadataUploadHandler implements RequestHandler<S3Event, MetadataUp
           imageMetadataUploadRequest.cameraMake = rawImageData[10];
           imageMetadataUploadRequest.cameraModel = rawImageData[11];
           try {
-            imageMetadataUploadRequest.imageDate = new SimpleDateFormat("MM/dd/yyyy HH:mm")
+            imageMetadataUploadRequest.imageDate = new SimpleDateFormat("MM-DD-YYYY HH:mm:ss")
                     .parse(rawImageData[12]).getTime();
           } catch (ParseException e) {
             e.printStackTrace();

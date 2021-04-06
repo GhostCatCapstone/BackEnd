@@ -11,7 +11,7 @@ public class AddCameraTrapDAO {
 
     //Objects used to access DynamoDB
     static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-            .withRegion(Regions.US_EAST_1)
+            .withRegion(Regions.US_EAST_2)
             .build();
     static DynamoDB dynamoDB = new DynamoDB(client);
 
