@@ -243,23 +243,26 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @return The outcome of the database query.
      */
     private static List<Item> getDBItems(ImageQueryRequest request) {
+        List<Item> items;
         if (request.cameraTraps != null && request.cameraTraps.size() > 0) {
+            items = dao.queryImagesOnCameraTrap(request);
             // update the request so we don't filter on camera trap again
             request.cameraTraps = null;
-            return dao.queryImagesOnCameraTrap(request);
         }
         else if (request.minDate != null) {
+            items =  dao.queryImagesOnMinDate(request);
             // update the request so we don't filter on min date again
             request.minDate = null;
-            return dao.queryImagesOnMinDate(request);
         }
         else if (request.maxDate != null)  {
+            items = dao.queryImagesOnMaxDate(request);
             // update the request so we don't filter on max date again
             request.maxDate = null;
-            return dao.queryImagesOnMaxDate(request);
+        } else {
+            items = dao.queryImagesOnUserID(request.userID);
         }
 
-        return dao.queryImagesOnUserID(request.userID);
+        return items;
     }
 
     /**
