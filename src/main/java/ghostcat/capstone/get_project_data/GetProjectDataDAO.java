@@ -8,7 +8,6 @@ import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class GetProjectDataDAO {
     static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
@@ -28,8 +27,7 @@ public class GetProjectDataDAO {
                         .withString(":v_userID", userID)
                 );
         ItemCollection<QueryOutcome> items = userDataTable.query(spec);
-        Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) results.add(iterator.next());
+        for (Item item : items) results.add(item);
         return results;
     }
 
@@ -42,8 +40,7 @@ public class GetProjectDataDAO {
                         .withString(":v_projectID", projectID)
                 );
         ItemCollection<QueryOutcome> items = cameraTrapTable.query(spec);
-        Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) results.add(iterator.next());
+        for (Item item : items) results.add(item);
         return results;
     }
 }

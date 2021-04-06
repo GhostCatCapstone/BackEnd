@@ -2,8 +2,6 @@ package ghostcat.capstone.get_project_data;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.lambda.runtime.Context;
-import ghostcat.capstone.get_camera_traps.GetCameraTrapsRequest;
-import ghostcat.capstone.get_camera_traps.GetCameraTrapsResponse;
 import ghostcat.capstone.holders.CameraTrap;
 import ghostcat.capstone.holders.Factory;
 import ghostcat.capstone.holders.Project;
@@ -19,7 +17,6 @@ public class GetProjectDataHandler {
         GetProjectDataRequest request = new GetProjectDataRequest();
         request.userID = "researcherID";
         response = getProjectData(request);
-        return;
     }
 
     public GetProjectDataResponse handleRequest(GetProjectDataRequest request, Context context) {

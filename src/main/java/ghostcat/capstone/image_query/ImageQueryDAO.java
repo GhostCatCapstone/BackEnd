@@ -28,21 +28,6 @@ public class ImageQueryDAO {
         Table userDataTable = dynamoDB.getTable(PROJECT_TABLE);
         ArrayList<Item> results = new ArrayList<>();
 
-        AmazonDynamoDB c = AmazonDynamoDBClientBuilder.standard()
-                .withRegion(Regions.US_EAST_2)
-                .build();
-        DynamoDB d = new DynamoDB(c);
-
-        TableCollection<ListTablesResult> tables = dynamoDB.listTables();
-        Iterator<Table> it = tables.iterator();
-
-        System.out.println("Listing table names");
-
-        while (it.hasNext()) {
-            Table table = it.next();
-            System.out.println(table.getTableName());
-        }
-
         //Query UserData table
         QuerySpec spec = new QuerySpec()
                 .withKeyConditionExpression("UserID = :v_userID and ProjectID = :v_projectID")
@@ -83,8 +68,8 @@ public class ImageQueryDAO {
 
         String keyExp = "UserID = :v_userID and img_id = :v_imageId";
         ValueMap values = new ValueMap()
-                .withString(":v_userID", userID)
-                .withString(":v_img_id", imageId);
+                .with(":v_userID", userID)
+                .with(":v_imageId", imageId);
         QuerySpec spec = new QuerySpec()
                 .withKeyConditionExpression(keyExp)
                 .withValueMap(values);

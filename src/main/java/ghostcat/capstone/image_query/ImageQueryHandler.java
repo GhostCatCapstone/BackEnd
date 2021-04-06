@@ -23,9 +23,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         ImageQueryRequest request = new ImageQueryRequest();
         request.userID = "researcherID";
         request.projectID = "projectID";
-        request.cameraTraps = new ArrayList<>();
-        request.cameraTraps.add("Cow");
-        ImageQueryResponse response = doQuery(request);
+        doQuery(request);
     }
 
     /**
@@ -54,19 +52,11 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         List<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
         filteredResults = filterResultsOnClass(filteredResults, request);
 
-        List<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
-        System.out.println("db results: " + dbResults.size());
-        List<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
-        System.out.println("filtered on metadata: " + filteredResults.size());
-        List<Image> filteredOnClass = filterResultsOnClass(filteredResults, request);
-        System.out.println("filtered on class: " + filteredOnClass);
-        response.images = filteredOnClass;
+        response.images = filteredResults;
 
         Collections.sort(response.images);
 
         response.success = true;
-        response.errorMsg = "Request: " + request.str();
-        System.out.println("returning " + response.images.size() + " images");
         return response;
     }
 
