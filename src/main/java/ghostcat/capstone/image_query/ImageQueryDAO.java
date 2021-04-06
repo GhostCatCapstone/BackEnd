@@ -3,14 +3,10 @@ package ghostcat.capstone.image_query;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,6 +28,21 @@ public class ImageQueryDAO {
     public ArrayList<Item> queryProjectDataOnUserIDAndProjectID(ImageQueryRequest request) {
         Table userDataTable = dynamoDB.getTable(PROJECT_TABLE);
         ArrayList<Item> results = new ArrayList<>();
+
+        AmazonDynamoDB c = AmazonDynamoDBClientBuilder.standard()
+                .withRegion(Regions.US_EAST_2)
+                .build();
+        DynamoDB d = new DynamoDB(c);
+
+        TableCollection<ListTablesResult> tables = dynamoDB.listTables();
+        Iterator<Table> it = tables.iterator();
+
+        System.out.println("Listing table names");
+
+        while (it.hasNext()) {
+            Table table = it.next();
+            System.out.println(table.getTableName());
+        }
 
         //Query UserData table
         QuerySpec spec = new QuerySpec()
