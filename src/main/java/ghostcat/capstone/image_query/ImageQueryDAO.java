@@ -9,7 +9,6 @@ import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class ImageQueryDAO {
@@ -52,8 +51,9 @@ public class ImageQueryDAO {
                         .withString(":v_projectID", request.projectID)
                 );
         ItemCollection<QueryOutcome> items = userDataTable.query(spec);
-        Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) results.add(iterator.next());
+        for (Item item : items) {
+            results.add(item);
+        }
         return results;
     }
 
@@ -94,24 +94,6 @@ public class ImageQueryDAO {
             results.add(item);
         }
 
-        return results;
-    }
-
-    public ArrayList<Item> queryBBoxOnUserID(String userID) {
-        ArrayList<Item> results = new ArrayList<>();
-        Table bboxTable = dynamoDB.getTable(BBOX_TABLE);
-
-        String keyExp = "UserID = :v_userID";
-        ValueMap values = new ValueMap()
-                .withString(":v_userID", userID);
-        QuerySpec spec = new QuerySpec()
-                .withKeyConditionExpression(keyExp)
-                .withValueMap(values);
-
-        ItemCollection<QueryOutcome> items = bboxTable.query(spec);
-        for (Item item : items) {
-            results.add(item);
-        }
         return results;
     }
 

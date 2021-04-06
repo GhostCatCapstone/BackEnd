@@ -50,8 +50,9 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         numClasses = getUserInfo(request, classNames, response);
         if (!response.success) return response;
 
-        System.out.println("Class names: ");
-        System.out.println(classNames.keySet());
+        List<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
+        List<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
+        filteredResults = filterResultsOnClass(filteredResults, request);
 
         List<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
         System.out.println("db results: " + dbResults.size());
@@ -98,7 +99,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         if (request.classes != null) {
             for (ClassNameValue c : request.classes) {
                 double confidenceValue = c.classValue;
-                if (confidenceValue > 1 || confidenceValue < 0) {
+                if (confidenceValue > 100 || confidenceValue < 0) {
                     response.success = false;
                     response.errorMsg = "Invalid confidence value: " + c.className + " = " + confidenceValue;
                 }
@@ -249,23 +250,26 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @return The outcome of the database query.
      */
     private static List<Item> getDBItems(ImageQueryRequest request) {
+        List<Item> items;
         if (request.cameraTraps != null && request.cameraTraps.size() > 0) {
+            items = dao.queryImagesOnCameraTrap(request);
             // update the request so we don't filter on camera trap again
             request.cameraTraps = null;
-            return dao.queryImagesOnCameraTrap(request);
         }
         else if (request.minDate != null) {
+            items =  dao.queryImagesOnMinDate(request);
             // update the request so we don't filter on min date again
             request.minDate = null;
-            return dao.queryImagesOnMinDate(request);
         }
         else if (request.maxDate != null)  {
+            items = dao.queryImagesOnMaxDate(request);
             // update the request so we don't filter on max date again
             request.maxDate = null;
-            return dao.queryImagesOnMaxDate(request);
+        } else {
+            items = dao.queryImagesOnUserID(request.userID);
         }
 
-        return dao.queryImagesOnUserID(request.userID);
+        return items;
     }
 
     /**
@@ -280,7 +284,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         List<Image> formattedResults = new ArrayList<>();
         for (Item i : dbResults) {
             Image image = new Image(
-                    i.getString("img_id"),
+                    i.getString("ImageID"),
                     i.getInt("img_height"),
                     i.getInt("img_width"),
                     i.getBoolean("flash_on"),
@@ -304,7 +308,8 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
                         bbItem.getDouble("bbox_width"),
                         bbItem.getDouble("bbox_height"));
                 for (int j = 1; j <= numClasses; ++j) {
-                    boundingBox.classes.put(getNameFromIndex("class_" + j, classNames), i.getDouble("class_" + j));
+                    boundingBox.classes.put(getNameFromIndex("class_" + j, classNames),
+                            bbItem.getDouble("class_" + j));
                 }
                 image.boundingBoxes.add(boundingBox);
             }

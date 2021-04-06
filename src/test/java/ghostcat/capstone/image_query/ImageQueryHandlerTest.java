@@ -147,7 +147,7 @@ class ImageQueryHandlerTest {
     public void shouldReturnErrorOnInvalidConfidenceValue() {
         ImageQueryResponse response = null;
 
-        request.classes.add(new ClassNameValue("Cow", 1.1));
+        request.classes.add(new ClassNameValue("Cow", 101));
         response = handler.handleRequest(request, null);
         assertFalse(response.success);
 
