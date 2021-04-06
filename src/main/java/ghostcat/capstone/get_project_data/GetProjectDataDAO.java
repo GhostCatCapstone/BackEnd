@@ -16,6 +16,7 @@ public class GetProjectDataDAO {
             .build();
     static DynamoDB dynamoDB = new DynamoDB(client);
     static String PROJECT_TABLE = "ProjectData";
+    static String CAMERA_TRAP_TABLE = "CameraTraps";
 
     public ArrayList<Item> queryProjectDataOnUserID(String userID) {
         Table userDataTable = dynamoDB.getTable(PROJECT_TABLE);
@@ -32,4 +33,17 @@ public class GetProjectDataDAO {
         return results;
     }
 
+    public ArrayList<Item> queryCameraTrapsOnProjectID(String projectID) {
+        Table cameraTrapTable = dynamoDB.getTable(CAMERA_TRAP_TABLE);
+        ArrayList<Item> results = new ArrayList<>();
+        QuerySpec spec = new QuerySpec()
+                .withKeyConditionExpression("ProjectID = :v_projectID")
+                .withValueMap(new ValueMap()
+                        .withString(":v_projectID", projectID)
+                );
+        ItemCollection<QueryOutcome> items = cameraTrapTable.query(spec);
+        Iterator<Item> iterator = items.iterator();
+        while (iterator.hasNext()) results.add(iterator.next());
+        return results;
+    }
 }

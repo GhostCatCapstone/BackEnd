@@ -4,6 +4,6 @@ import java.util.ArrayList;
 
 public class Project {
     public ArrayList<String> classes = new ArrayList<>();
-    public boolean usesCameraTraps = true;
+    public ArrayList<CameraTrap> cameraTraps = new ArrayList<>();
     public String projectID;
 }
