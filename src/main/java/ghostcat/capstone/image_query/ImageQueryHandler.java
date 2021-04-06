@@ -24,7 +24,6 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         request.userID = "researcherID";
         request.projectID = "projectID";
         doQuery(request);
-
     }
 
     /**
@@ -58,8 +57,6 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         Collections.sort(response.images);
 
         response.success = true;
-        response.errorMsg = "Request: " + request.str();
-
         return response;
     }
 

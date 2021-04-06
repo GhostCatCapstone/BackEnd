@@ -2,6 +2,7 @@ package ghostcat.capstone.get_project_data;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.lambda.runtime.Context;
+import ghostcat.capstone.holders.CameraTrap;
 import ghostcat.capstone.holders.Factory;
 import ghostcat.capstone.holders.Project;
 
@@ -16,7 +17,6 @@ public class GetProjectDataHandler {
         GetProjectDataRequest request = new GetProjectDataRequest();
         request.userID = "researcherID";
         response = getProjectData(request);
-        return;
     }
 
     public GetProjectDataResponse handleRequest(GetProjectDataRequest request, Context context) {
@@ -54,15 +54,37 @@ public class GetProjectDataHandler {
         } else {
             for (Item item : results) {
                 Project p = new Project();
-                p.usesCameraTraps = item.getBoolean("uses_camera_traps");
                 int numClasses = item.getInt("num_classes");
                 for (int i = 1; i <= numClasses; ++i) {
                     p.classes.add(item.getString("class_" + String.valueOf(i)));
                 }
                 p.projectID = item.getString("ProjectID");
+                p.cameraTraps = getCameraTraps(p.projectID);
                 response.projects.add(p);
             }
         }
         return response;
     }
+
+
+    /**
+     * Returns list of CameraTrap objects associated with the projectID in the given request.
+     *
+     * @param projectID String containing projectID
+     * @return Response object containing either a list of CameraTrap objects, or an error message.
+     */
+    public static ArrayList<CameraTrap> getCameraTraps(String projectID) {
+        ArrayList<Item> results = dao.queryCameraTrapsOnProjectID(projectID);
+        ArrayList<CameraTrap> traps = new ArrayList<>();
+        for (Item i : results) {
+            traps.add(new CameraTrap(
+                    i.getString("CameraTrapID"),
+                    i.getString("ProjectID"),
+                    i.getDouble("camera_lat"),
+                    i.getDouble("camera_lng")
+            ));
+        }
+        return traps;
+    }
 }
+
