@@ -92,7 +92,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         if (request.classes != null) {
             for (ClassNameValue c : request.classes) {
                 double confidenceValue = c.classValue;
-                if (confidenceValue > 1 || confidenceValue < 0) {
+                if (confidenceValue > 100 || confidenceValue < 0) {
                     response.success = false;
                     response.errorMsg = "Invalid confidence value: " + c.className + " = " + confidenceValue;
                 }
