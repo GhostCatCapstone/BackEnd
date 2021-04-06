@@ -170,7 +170,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withString("camera_trap", "site004");
         Item invalidResult = generateValidResult().withString("camera_trap", "site005");
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryImagesOnCameraTrap(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -195,7 +195,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withLong("date", Long.valueOf("1553285041000"));
         Item invalidResult = generateValidResult().withLong("date", Long.valueOf("1553586357000"));
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryImagesOnCameraTrap(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -220,7 +220,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withDouble("class_1", .99);
         Item invalidResult = generateValidResult().withDouble("class_1", .5);
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryImagesOnCameraTrap(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 
@@ -248,7 +248,7 @@ class ImageQueryHandlerTest {
         Item validResult = generateValidResult().withString("deployment", "photos_spring2019");
         Item invalidResult = generateValidResult().withString("deployment", "photos_spring2020");
 
-        when(Factory.imageQueryDAO.queryBBoxOnCameraTraps(request)).thenReturn(new ArrayList<>(
+        when(Factory.imageQueryDAO.queryImagesOnCameraTrap(request)).thenReturn(new ArrayList<>(
                 Arrays.asList(validResult, invalidResult)
         ));
 

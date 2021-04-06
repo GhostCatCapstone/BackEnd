@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, ImageQueryResponse> {
 
@@ -37,7 +38,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
     }
 
     public static ImageQueryResponse doQuery(ImageQueryRequest request) {
-        ImageQueryResponse response = new ImageQueryResponse();
+        ImageQueryResponse response;
         dao = Factory.imageQueryDAO;
         HashMap<String, String> classNames = new HashMap<>();
         int numClasses = 0;
@@ -48,9 +49,9 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
         numClasses = getUserInfo(request, classNames, response);
         if (!response.success) return response;
 
-        ArrayList<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
-        ArrayList<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
-        filteredResults = filterResultsOnClass(filteredResults, request, classNames);
+        List<Image> dbResults = queryBBoxDB(request, classNames, numClasses);
+        List<Image> filteredResults = filterResultsOnMetadata(dbResults, request);
+        filteredResults = filterResultsOnClass(filteredResults, request);
 
         response.images = filteredResults;
 
@@ -110,7 +111,7 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param request    Object that contains query parameters.
      * @return ArrayList of image objects that have been filtered by image metadata parameters.
      */
-    public static ArrayList<Image> filterResultsOnMetadata(ArrayList<Image> imgResults, ImageQueryRequest request) {
+    public static List<Image> filterResultsOnMetadata(List<Image> imgResults, ImageQueryRequest request) {
         ArrayList<Image> filtered = new ArrayList<>();
         for (Image i : imgResults) {
             boolean addImage = true;
@@ -136,22 +137,15 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      *
      * @param imgResults ArrayList of image objects that resulted from the DynamoDB query.
      * @param request    Object that contains query parameters.
-     * @param classNames HashMap<String, String> object that holds the association between a user's set of labels and
-     *                   each label's location in the BoundingBox database (e.g. "Cow" -> "class_1"). This is used to
-     *                   look up what each label's value is for a bounding box.
      * @return
      */
-    public static ArrayList<Image> filterResultsOnClass(ArrayList<Image> imgResults, ImageQueryRequest request,
-                                                        HashMap<String, String> classNames) {
-        ArrayList<Image> filteredImages = new ArrayList<>();
+    public static List<Image> filterResultsOnClass(List<Image> imgResults,
+                                                        ImageQueryRequest request) {
+        List<Image> filteredImages = new ArrayList<>();
         if (request.classes == null || request.classes.size() == 0) return imgResults;
 
         //remove all images that have no bounding boxes
-        Iterator<Image> iter = imgResults.iterator();
-        while(iter.hasNext()){
-            if(iter.next().boundingBoxes.size() == 0)
-                iter.remove();
-        }
+        imgResults.removeIf(image -> image.boundingBoxes.size() == 0);
 
         for (Image i : imgResults) {
             boolean addImg = true;
@@ -227,18 +221,12 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param numClasses The number of classes in a user's data set.
      * @return An ArrayList of image objects that contains the results of the query.
      */
-    public static ArrayList<Image> queryBBoxDB(ImageQueryRequest request, HashMap<String, String> classNames,
+    public static List<Image> queryBBoxDB(ImageQueryRequest request, HashMap<String, String> classNames,
                                         int numClasses) {
-        ArrayList<Item> bboxResults = new ArrayList<>();
-        ArrayList<Item> imageResults = new ArrayList<>();
+        List<Item> results = getDBItems(request);
 
-        ArrayList<Item>[] results = getDBItems(request);
-
-        ArrayList<Image> formattedBBoxResults = formatBBoxResults(numClasses, classNames, results[0]);
-        ArrayList<Image> formattedImgResults = formatImageResults(numClasses, classNames, results[1]);
-
-        ArrayList<Image> combinedList = combineImageResultsWithBBoxResults(formattedImgResults, formattedBBoxResults);
-        return combinedList;
+        List<Image> formattedDBResults = formatDBResults(results, request.userID, classNames, numClasses);
+        return formattedDBResults;
     }
 
     /**
@@ -254,37 +242,24 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param request Object that contains query parameters.
      * @return The outcome of the database query.
      */
-    private static ArrayList<Item>[] getDBItems(ImageQueryRequest request) {
-        ArrayList<Item>[] results = new ArrayList[2];
+    private static List<Item> getDBItems(ImageQueryRequest request) {
         if (request.cameraTraps != null && request.cameraTraps.size() > 0) {
-            results[0] = dao.queryBBoxOnCameraTraps(request);
-            results[1] = dao.queryImagesOnCameraTrap(request);
+            // update the request so we don't filter on camera trap again
+            request.cameraTraps = null;
+            return dao.queryImagesOnCameraTrap(request);
         }
         else if (request.minDate != null) {
-            results[0] = dao.queryBBoxOnMinDate(request);
-            results[1] = dao.queryImagesOnMinDate(request);
+            // update the request so we don't filter on min date again
+            request.minDate = null;
+            return dao.queryImagesOnMinDate(request);
         }
         else if (request.maxDate != null)  {
-            results[0] = dao.queryBBoxOnMaxDate(request);
-            results[1] = dao.queryImagesOnMaxDate(request);
+            // update the request so we don't filter on max date again
+            request.maxDate = null;
+            return dao.queryImagesOnMaxDate(request);
         }
-        else {
-            results[0] = dao.queryBBoxOnUserID(request);
-            results[1] = dao.queryImagesOnUserID(request);
-        }
-        return results;
-    }
 
-    private static ArrayList<Image> combineImageResultsWithBBoxResults(ArrayList<Image> imgResults, ArrayList<Image> bboxResults) {
-        ArrayList<Image> combinedList = new ArrayList<>(bboxResults);
-        for (Image i : imgResults) {
-            boolean addImg = true;
-            for (Image j : bboxResults) {
-                if (i.id.equals(j.id)) addImg = false;
-            }
-            if (addImg) combinedList.add(i);
-        }
-        return combinedList;
+        return dao.queryImagesOnUserID(request.userID);
     }
 
     /**
@@ -294,95 +269,44 @@ public class ImageQueryHandler implements RequestHandler<ImageQueryRequest, Imag
      * @param dbResults The results of the database query.
      * @return An ArrayList of image objects that contains the results of the query.
      */
-    private static ArrayList<Image> formatBBoxResults(int numClasses, HashMap<String, String> classNames,
-                                                      ArrayList<Item> dbResults) {
-        ArrayList<Image> formattedResults = new ArrayList<>();
+    private static List<Image> formatDBResults(List<Item> dbResults, String userID,
+                                                    HashMap<String, String> classNames, int numClasses) {
+        List<Image> formattedResults = new ArrayList<>();
         for (Item i : dbResults) {
-            if (!imgInList(i.getString("img_id"), formattedResults)) {
-                Image image = new Image(
-                        i.getString("img_id"),
-                        i.getInt("img_height"),
-                        i.getInt("img_width"),
-                        i.getBoolean("flash_on"),
-                        i.getString("camera_make"),
-                        i.getString("camera_model"),
-                        i.getLong("img_date"),
-                        i.getString("camera_trap"),
-                        i.getString("deployment"),
-                        i.getBoolean("night_img"),
-                        i.getString("img_link")
-                );
-                formattedResults.add(image);
-            }
-            BoundingBox boundingBox = new BoundingBox(
-                    i.getString("BBoxID"),
-                    i.getString("img_id"),
-                    i.getDouble("bbox_X"),
-                    i.getDouble("bbox_Y"),
-                    i.getDouble("bbox_width"),
-                    i.getDouble("bbox_height"));
+            Image image = new Image(
+                    i.getString("ImageID"),
+                    i.getInt("img_height"),
+                    i.getInt("img_width"),
+                    i.getBoolean("flash_on"),
+                    i.getString("camera_make"),
+                    i.getString("camera_model"),
+                    i.getLong("img_date"),
+                    i.getString("camera_trap"),
+                    i.getString("deployment"),
+                    i.getBoolean("night_img"),
+                    i.getString("img_link")
+            );
 
-            for (int j = 1; j <= numClasses; ++j) {
-                boundingBox.classes.put(getNameFromIndex("class_" + j, classNames), i.getDouble("class_" + j));
+            image.boundingBoxes = new ArrayList<>();
+            List<Item> bbItems = dao.queryBBoxOnImageId(userID, image.id);
+            for (Item bbItem : bbItems) {
+                BoundingBox boundingBox = new BoundingBox(
+                        bbItem.getString("BBoxID"),
+                        bbItem.getString("img_id"),
+                        bbItem.getDouble("bbox_X"),
+                        bbItem.getDouble("bbox_Y"),
+                        bbItem.getDouble("bbox_width"),
+                        bbItem.getDouble("bbox_height"));
+                for (int j = 1; j <= numClasses; ++j) {
+                    boundingBox.classes.put(getNameFromIndex("class_" + j, classNames),
+                            bbItem.getDouble("class_" + j));
+                }
+                image.boundingBoxes.add(boundingBox);
             }
-            addBBox(boundingBox, formattedResults);
+
+            formattedResults.add(image);
         }
         return formattedResults;
-    }
-
-    /**
-     * Formats a query result into a list of image objects. Each image object contains a list of bounding boxes.
-     *
-     * @param numClasses The number of classes in a user's data set.
-     * @param dbResults The results of the database query.
-     * @return An ArrayList of image objects that contains the results of the query.
-     */
-    private static ArrayList<Image> formatImageResults(int numClasses, HashMap<String, String> classNames,
-                                                      ArrayList<Item> dbResults) {
-        ArrayList<Image> formattedResults = new ArrayList<>();
-        for (Item i : dbResults) {
-            if (!imgInList(i.getString("ImageID"), formattedResults)) {
-                Image image = new Image(
-                        i.getString("ImageID"),
-                        i.getInt("image_height"),
-                        i.getInt("image_width"),
-                        i.getBoolean("flash_on"),
-                        i.getString("camera_make"),
-                        i.getString("camera_model"),
-                        i.getLong("img_date"),
-                        i.getString("camera_trap"),
-                        i.getString("deployment"),
-                        i.getBoolean("night_img"),
-                        i.getString("img_link")
-                );
-                formattedResults.add(image);
-            }
-        }
-        return formattedResults;
-    }
-
-    /**
-     * Checks if a given image is contained in an ArrayList of images.
-     *
-     * @param id     Image id being checked.
-     * @param images ArrayList of images to check the image against
-     * @return True if image is in the list, and false if it isn't.
-     */
-    public static boolean imgInList(String id, ArrayList<Image> images) {
-        for (Image i : images) {
-            if (id.equals(i.id)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Adds BoundingBox object to the Image object with the correct ID.
-     *
-     * @param bbox   BoundingBox object to be added.
-     * @param images Arraylist of images to sort through.
-     */
-    public static void addBBox(BoundingBox bbox, ArrayList<Image> images) {
-        for (Image i : images) if (i.id.equals(bbox.imgId)) i.boundingBoxes.add(bbox);
     }
 
     public static String getNameFromIndex(String index, HashMap<String, String> classNames) {
